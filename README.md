@@ -59,7 +59,7 @@ Experimental properties (from SurfPro)
 - Surface pressure at CMC ($\Pi_{\mathrm{CMC}}$)
 - Maximum surface excess ($\Gamma_{\max}$)
 - Minimum molecular area ($A_{\min}$)
-- Adsorption efficiency (pC$_{20}$)
+- Adsorption efficiency ($pC_{20}$)
  
 MD-derived properties (this work)
 - Surfactant's diffusion coefficient $D_{\mathrm{MOL}}$ at given concentation
