@@ -9,7 +9,7 @@ SurfPro-MD is an extended surfactant property dataset and associated computation
 The repository accompanies the manuscript:
 
 **A unified experimental-simulation dataset and surrogate models for surfactant property prediction]**  
-**Richard Beckmann richard.beckmann@rub.de, Pablo Martinez Crespo, Robert S. Jordan, Marisa Gliege, Santiago Miret, Vijay Kris Narasimhan, and Rocío Mercado**  
+**Richard Beckmann, Pablo Martinez Crespo, Robert S. Jordan, Marisa Gliege, Santiago Miret, Vijay Kris Narasimhan, and Rocío Mercado**  
 **https://chemrxiv.org/doi/full/10.26434/chemrxiv.15002790/v1**
 
 The work extends the SurfPro database by augmenting experimentally curated surfactant data with four additional properties derived from atomistic molecular dynamics simulations:
