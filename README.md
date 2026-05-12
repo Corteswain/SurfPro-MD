@@ -52,7 +52,7 @@ SurfPro-MD/
 ## Dataset
 
 The SurfPro-MD dataset combines:
-
+```text
 Experimental properties (from SurfPro)
 Log of critical micelle concentration pCMC
 Surface tension at CMC ($\gamma_{\mathrm{CMC}}$)
@@ -68,6 +68,7 @@ Surface Tension $\gamma$ at given concentation
 
 Final size:
 1436 molecules
+```
 
 # Usage
 
