@@ -47,3 +47,44 @@ SurfPro-MD/
 ├── models/             # saved trained models
 ├── reference/          # experimental validation datasets
 └── README.md
+
+## Dataset
+
+The SurfPro-MD dataset combines:
+
+Experimental properties (from SurfPro)
+Log of critical micelle concentration pCMC
+Surface tension at CMC ($\gamma_{\mathrm{CMC}}$)
+Surface pressure at CMC ($\Pi_{\mathrm{CMC}}$)
+Maximum surface excess ($\Gamma_{\max}$)
+Minimum molecular area ($A_{\min}$)
+Adsorption efficiency (pC$_{20}$)
+MD-derived properties (this work)
+Surfactant's diffusion coefficient $D_{\mathrm{MOL}}$ at given concentation
+Solute's diffusion coefficient $D_{\mathrm{SOL}}$ at given concentation
+Viscosity $\eta$ at given concentation
+Surface Tension $\gamma$ at given concentation
+
+Final size:
+1436 molecules
+
+# Usage
+
+### Main Python packages:
+numpy
+pandas
+matplotlib
+scikit-learn
+xgboost
+rdkit
+optuna
+tqdm
+
+### External software dependencies
+Open Babel 3.0.1
+AmberTools
+ACPYPE
+GROMACS 2024.3
+
+## Workflow 
+Following soon...
