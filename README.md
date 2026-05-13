@@ -39,13 +39,8 @@ to enable **full reproducibility**.
 ```text
 SurfPro-MD/
 ├── data/               # curated datasets and processed CSV files
-├── seedfiles/          # input SMILES and seed structures
-├── scripts/            # general preprocessing scripts
-├── MD/                 # molecular dynamics setup and analysis workflows
-├── ML/                 # machine learning model training and evaluation
-├── figures/            # figure-generation scripts used in manuscript
-├── models/             # saved trained models
-├── reference/          # experimental validation datasets
+├── MD-simulations/                 # molecular dynamics setup and analysis workflows
+├── surrogate-models/                 # machine learning model training and evaluation
 └── README.md
 ```
 
@@ -90,4 +85,10 @@ ACPYPE
 GROMACS 2024.3
 
 ## Workflow 
-Following soon...
+### MD Simulations
+All Simulations were carried out with GROMACS2024
+
+
+
+
+
