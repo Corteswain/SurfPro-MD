@@ -38,9 +38,9 @@ to enable **full reproducibility**.
 
 ```text
 SurfPro-MD/
-├── data/               # curated datasets and processed CSV files
-├── MD-simulations/                 # molecular dynamics setup and analysis workflows
-├── surrogate-models/                 # machine learning model training and evaluation
+├── data/                 # curated datasets and processed CSV files
+├── MD-simulations/       # molecular dynamics setup and analysis workflows
+├── surrogate-models/     # machine learning model training and evaluation
 └── README.md
 ```
 
@@ -85,8 +85,48 @@ ACPYPE
 GROMACS 2024.3
 
 ## Workflow 
-### MD Simulations
 All Simulations were carried out with GROMACS2024
+
+### Parameterisation
+In MD-simulations/parameterise, run start_runs.sh to submit multiple slurm jobs.
+Modify it to choose which molecules to parameterise.
+This script will take the parameterise.slurm script from MD-simulations/parameterise/Blank/ and submit it with the appropriate parameters for each of them.
+
+### Equilibration
+After parameterisation, go to MD-simulations/equilibrations, and run start-runs.sh with the same molecular IDs.
+The script will automatically find the parameterised topologies and carry out equilibration simulations with one slurm job per molecule.
+
+### Production runs
+For viscosity, surface tension, and diffusion coefficients, perform the same steps in
+MD-simulations/viscosity, MD-simulations/tension, and MD-simulations/bulk-properties --- run start-runs.sh in these directories and the script will automatically find the equilibrated systems and submit slurm jobs accordingly.
+
+### Machine Learning
+The Training for all models can be found in surrogate-models/surrogate.ipynb
+Open and execute the notebook to produce all XGBoost models, analyse the results, and obtain all figures found in the original publication.
+All models will be found together in surrogate-models/models.pkl
+This file contains a dictionary with "{target}_{test_id}" where test_id ranges from 0 to 4 to denote the different test splits.
+Each of these entries in anohter dictionary with the following entries:
+            "target": target,               
+            "test_id": test_id,
+        
+            # metrics
+            "rmse_ensemble": ensemble_rmse_s,
+            "r2_ensemble": ensemble_r2_s,
+            "rho_ensemble": ensemble_rho_s,
+            "pcc_ensemble": ensemble_pcc_s,
+        
+            # models
+            "fold_models": fold_models,
+        
+            # data traceability
+            "test_indices": test_indices,
+            "split_column": split_col0,
+        
+            # reproducibility
+            "feature_cols": features_all,
+            "y_test": y_test,
+            "y_pred": ensemble_preds,
+            "test_mask": test_mask,
 
 
 
