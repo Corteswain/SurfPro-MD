@@ -38,9 +38,25 @@ to enable **full reproducibility**.
 
 ```text
 SurfPro-MD/
-├── data/                 # curated datasets and processed CSV files
-├── MD-simulations/       # molecular dynamics setup and analysis workflows
-├── surrogate-models/     # machine learning model training and evaluation
+├── data/                              # curated datasets and processed CSV files
+│   ├── SurfPro.csv                    # The original SurfPro dataset
+│   ├── SurfPro-MD.csv                 # The final dataset
+│   ├── references/                    # Containing experimental measurements of viscosity and surface tension for various acids and alcohols
+├── MD-simulations/                    # molecular dynamics setup and analysis workflows
+│   ├── extract_data_canonicalised.py  # Script to obtain MD results after all simulations are completed
+│   ├── gromacs.def                    # Apptainer definition file required to reproduce the environment we used to run GROMACS
+│   ├── parameterise                     
+│   │   ├── start_runs.sh              # Start a number of slurm jobs to parameterise surfactant molecules
+│   ├── equilibrations
+│   │   ├── start_runs.sh              # Start a number of slurm jobs to equilibrate systems
+│   ├── viscosity
+│   │   ├── start_runs.sh              # Start a number of slurm jobs to compute viscosities
+│   ├── tension
+│   │   ├── start_runs.sh              # Start a number of slurm jobs to compute surface tensions
+│   ├── bulk-properties
+│   │   ├── start_runs.sh              # Start a number of slurm jobs to compute diffusion coefficients and other bulk properties
+├── surrogate-models/                  # machine learning model training and evaluation
+│   ├── surrogate.ipynb                # Jupyter notebook to train all models and produce all figures presented in the publication
 └── README.md
 ```
 
