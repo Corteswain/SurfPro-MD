@@ -105,28 +105,6 @@ The Training for all models can be found in surrogate-models/surrogate.ipynb
 Open and execute the notebook to produce all XGBoost models, analyse the results, and obtain all figures found in the original publication.
 All models will be found together in surrogate-models/models.pkl
 This file contains a dictionary with "{target}_{test_id}" where test_id ranges from 0 to 4 to denote the different test splits.
-Each of these entries in anohter dictionary with the following entries:
-            "target": target,               
-            "test_id": test_id,
-        
-            # metrics
-            "rmse_ensemble": ensemble_rmse_s,
-            "r2_ensemble": ensemble_r2_s,
-            "rho_ensemble": ensemble_rho_s,
-            "pcc_ensemble": ensemble_pcc_s,
-        
-            # models
-            "fold_models": fold_models,
-        
-            # data traceability
-            "test_indices": test_indices,
-            "split_column": split_col0,
-        
-            # reproducibility
-            "feature_cols": features_all,
-            "y_test": y_test,
-            "y_pred": ensemble_preds,
-            "test_mask": test_mask,
 
 
 
