@@ -38,6 +38,7 @@ from sklearn.linear_model import Ridge
 from sklearn.manifold import TSNE
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import KFold, train_test_split
+from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import StandardScaler
 
@@ -46,7 +47,6 @@ from rdkit.Chem import AllChem, Crippen, Descriptors
 from rdkit.Chem import Draw
 from rdkit.Chem.Scaffolds import MurckoScaffold
 from rdkit.DataStructs.cDataStructs import TanimotoSimilarity
-from rdkit.ML.Cluster import Butina
 from rdkit.ML.Descriptors import MoleculeDescriptors
 
 from tqdm import tqdm
@@ -150,6 +150,10 @@ EQ_STEPS = 100
 # considered an isolated outlier and removed before training/evaluation.
 NN_ISOLATION_THRESHOLD = 50.0
 
+# Target number of k-means clusters.  Set to match the granularity produced by
+# the Morgan-fingerprint / Butina approach (~90 clusters from ~1 400 molecules).
+N_CLUSTERS = 90
+
 # =============================================================================
 # COMMAND-LINE ARGUMENTS
 # =============================================================================
@@ -160,8 +164,8 @@ parser.add_argument(
          "Without this flag the script loads existing models from models.pkl.",
 )
 parser.add_argument(
-    "--model", default="models.pkl",
-    help="Path to the models pickle file (default: models.pkl).",
+    "--model", default="models_fs.pkl",
+    help="Path to the models pickle file (default: models_fs.pkl).",
 )
 parser.add_argument(
     "--quick", action="store_true", default=False,
@@ -196,7 +200,7 @@ _log_path = args.log
 if _log_path is None:
     _ts       = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     _mode     = "train" if args.train else "analysis"
-    _log_path = f"surrogate_{_mode}_{_ts}.log"
+    _log_path = f"surrogate_fs_{_mode}_{_ts}.log"
 
 _log_fh    = open(_log_path, "w")
 sys.stdout = _Tee(sys.stdout, _log_fh)
@@ -547,48 +551,46 @@ df = pd.read_csv(fname)
 
 print(df.columns)
 
-# --- Butina clustering on Morgan fingerprints ---
+# --- Butina clustering in standardized RDKit descriptor space ---
 df["mol"] = df["SMILES"].apply(Chem.MolFromSmiles)
 df_valid = df[df["mol"].notnull()].copy()
 
-def get_fingerprint(mol, radius=2, n_bits=1024):
-    if mol is None:
-        return None
-    return AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=n_bits)
+# Build feature matrix from pre-computed RDKit descriptors
+rdkit_cols_cluster = sorted([c for c in df_valid.columns if c.startswith("rdkit-")])
+X_cluster = df_valid[rdkit_cols_cluster].to_numpy().astype(float)
 
-fps = [get_fingerprint(m) for m in df_valid["mol"]]
-df_valid["fingerprint"] = fps
-nfps = len(fps)
-print(f"Generated {nfps} valid fingerprints.")
+# Impute NaN features with column means before scaling
+col_means_cluster = np.nanmean(X_cluster, axis=0)
+for j in range(X_cluster.shape[1]):
+    nan_mask_j = np.isnan(X_cluster[:, j])
+    X_cluster[nan_mask_j, j] = col_means_cluster[j]
 
-dists = []
-for i in range(1, nfps):
-    sims = DataStructs.BulkTanimotoSimilarity(fps[i], fps[:i])
-    dists.extend([1 - x for x in sims])
+scaler_cluster = StandardScaler()
+X_cluster_scaled = scaler_cluster.fit_transform(X_cluster)
 
-dist_thresh = 0.6
-clusters_butina = Butina.ClusterData(dists, nfps, distThresh=dist_thresh, isDistData=True)
+nmols = len(X_cluster_scaled)
+print(f"k-means clustering: {nmols} molecules × "
+      f"{X_cluster_scaled.shape[1]} standardized RDKit descriptors "
+      f"→ {N_CLUSTERS} clusters ...")
 
-cluster_id = np.zeros(nfps, dtype=int)
-for i, cluster in enumerate(clusters_butina):
-    for idx in cluster:
-        cluster_id[idx] = i
+km = KMeans(n_clusters=N_CLUSTERS, random_state=RANDOM_STATE, n_init=10)
+cluster_id = km.fit_predict(X_cluster_scaled)
 
 df_valid["cluster"] = cluster_id
 df_valid["cluster"] = df_valid["cluster"].astype("Int64")
-print(f"Found {len(clusters_butina)} clusters.")
 
-# t-SNE embedding for visualisation (skipped with --quick)
-fps_np = np.zeros((nfps, 1024), dtype=int)
-for i, fp in enumerate(fps):
-    DataStructs.ConvertToNumpyArray(fp, fps_np[i])
+sizes = sorted(np.bincount(cluster_id), reverse=True)
+print(f"Done.  Cluster sizes — min: {min(sizes)}, max: {max(sizes)}, "
+      f"median: {int(np.median(sizes))}, mean: {np.mean(sizes):.1f}")
 
 df["cluster"] = np.nan
 df.loc[df_valid.index, "cluster"] = df_valid["cluster"].values
 
+# t-SNE embedding for visualisation (skipped with --quick)
+# Use the same standardized RDKit feature matrix that drove the clustering.
 if not args.quick:
-    tsne = TSNE(n_components=2, perplexity=20, random_state=3, metric="cosine")
-    tsne_result = tsne.fit_transform(fps_np)
+    tsne = TSNE(n_components=2, perplexity=20, random_state=3, metric="euclidean")
+    tsne_result = tsne.fit_transform(X_cluster_scaled)
     df_valid["tsne_1"] = tsne_result[:, 0]
     df_valid["tsne_2"] = tsne_result[:, 1]
     df.loc[df_valid.index, "tsne_1"] = df_valid["tsne_1"].values
