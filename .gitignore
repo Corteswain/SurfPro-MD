@@ -1,2 +1,7 @@
 slurm-*.out
+*pkl
+*log
 *pdf
+*png
+*jpg
+*pyc
