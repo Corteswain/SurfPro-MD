@@ -236,8 +236,8 @@ class SurfProPredictor:
 
     # ── Prediction ────────────────────────────────────────────────────────────
 
-    def predict_target(self, smiles: str, target: str, test_id: int = 0) -> tuple:
-        """Predict a single property across all cross-validation folds.
+    def predict_target(self, smiles: str, target: str) -> tuple:
+        """Predict a single property using all 25 models (5 splits × 5 folds).
 
         Parameters
         ----------
@@ -245,29 +245,33 @@ class SurfProPredictor:
             Input molecule.
         target : str
             Internal target name (must be in ``self.targets``).
-        test_id : int
-            Outer test split index (0–4). Defaults to 0.
 
         Returns
         -------
         (mean, std) : tuple of float
-            Mean and standard deviation of predictions across the CV folds.
-            The std reflects disagreement between folds trained on different
-            data subsets — a proxy for model uncertainty on this molecule.
+            Mean across all 25 predictions.
+            Std is the standard deviation of the 5 per-split means — the 5 folds
+            within a split share the same data partition and are correlated, so
+            pooling all 25 would overstate the uncertainty.
         """
-        info = self._results[target][test_id]
-        X = self._build_features(smiles, info["feature_schema"])
+        # Feature schema is identical across splits — build X once
+        first_info = next(iter(self._results[target].values()))
+        X = self._build_features(smiles, first_info["feature_schema"])
 
-        fold_preds = [
-            fold["model"].inplace_predict(fold["scaler"].transform(X))[0]
-            for fold in info["fold_models"]
-        ]
-        return float(np.mean(fold_preds)), float(np.std(fold_preds))
+        split_means = []
+        for info in self._results[target].values():
+            fold_preds = [
+                fold["model"].inplace_predict(fold["scaler"].transform(X))[0]
+                for fold in info["fold_models"]
+            ]
+            split_means.append(np.mean(fold_preds))
+
+        split_means = np.array(split_means)
+        return float(np.mean(split_means)), float(np.std(split_means))
 
     def predict(
         self,
         smiles: str,
-        test_id: int = 0,
         return_ci: bool = False,
         return_explanation: bool = False,
         shap_max_folds: int = 3,
@@ -275,14 +279,16 @@ class SurfProPredictor:
     ) -> dict:
         """Predict all surfactant properties for one molecule.
 
+        Uses all 25 models (5 outer splits × 5 CV folds).  The reported std
+        is the standard deviation across the 5 per-split means.
+
         Parameters
         ----------
         smiles : str
             Input molecule as a SMILES string.
-        test_id : int
-            Outer test split to use for the point prediction (0–4). Defaults to 0.
         return_ci : bool
-            If True, also compute uncertainty across all outer test splits.
+            If True, also include min/max across outer test splits in the
+            output (in addition to the mean and std that are always returned).
         return_explanation : bool
             If True, compute SHAP feature importances for each target.
             Requires the ``shap`` package and may be slow.
@@ -305,7 +311,7 @@ class SurfProPredictor:
         """
         rows = {}
         for target in self.targets:
-            mean, std = self.predict_target(smiles, target, test_id=test_id)
+            mean, std = self.predict_target(smiles, target)
             scale = DISPLAY_SCALE.get(target, 1.0)
             rows[self._label(target)] = {
                 "prediction": mean * scale,
@@ -333,7 +339,7 @@ class SurfProPredictor:
             explanations = {}
             for target in self.targets:
                 mean_imp, std_imp = self.explain_target(
-                    smiles, target, test_id=test_id, max_folds=shap_max_folds
+                    smiles, target, max_folds=shap_max_folds
                 )
                 top = mean_imp.head(5)
                 explanations[self._label(target)] = {
@@ -345,11 +351,10 @@ class SurfProPredictor:
         return output
 
     def predict_with_error_bars(self, smiles: str) -> pd.DataFrame:
-        """Predict all targets with uncertainty estimated across outer test splits.
+        """Predict all targets with per-split breakdown (mean, std, min, max).
 
-        For each target, the prediction is computed for every outer test split
-        (each split uses its own 5-fold ensemble). The spread across splits gives
-        an estimate of out-of-distribution uncertainty.
+        Calls predict_target for each target (which already uses all splits) and
+        additionally computes the per-split min/max for a full range estimate.
 
         Returns
         -------
@@ -359,10 +364,11 @@ class SurfProPredictor:
         per_target = {}
 
         for target in self.targets:
-            split_means = []
+            first_info = next(iter(self._results[target].values()))
+            X = self._build_features(smiles, first_info["feature_schema"])
 
-            for test_id, info in self._results[target].items():
-                X = self._build_features(smiles, info["feature_schema"])
+            split_means = []
+            for info in self._results[target].values():
                 fold_preds = [
                     fold["model"].inplace_predict(fold["scaler"].transform(X))[0]
                     for fold in info["fold_models"]
@@ -450,8 +456,11 @@ class SurfProPredictor:
 
         return mean_imp
 
-    def explain(self, smiles: str, test_id: int = 0, max_folds: int = 3) -> dict:
+    def explain(self, smiles: str, max_folds: int = 3) -> dict:
         """Return top-5 SHAP importances for all targets.
+
+        Uses split 0 for SHAP computation (running all 25 models would be
+        25× slower with negligible benefit for feature attribution).
 
         Returns
         -------
@@ -462,7 +471,7 @@ class SurfProPredictor:
         results = {}
         for target in self.targets:
             mean_imp, std_imp = self.explain_target(
-                smiles, target, test_id=test_id, max_folds=max_folds
+                smiles, target, test_id=0, max_folds=max_folds
             )
             results[target] = {
                 "mean_importance": mean_imp.head(5),
