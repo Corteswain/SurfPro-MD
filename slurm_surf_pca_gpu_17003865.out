@@ -1,0 +1,91 @@
+============================================
+Job ID:    17003865
+Node:      node089
+Started:   Mon Jun 29 15:45:07 CEST 2026
+Workdir:   /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/surrogate-models
+============================================
+NVIDIA A100-SXM4-80GB, 81920 MiB
+
+Using existing environment: /proj/berzelius-2026-62/users/x_ribec/software/surf-surrogate-env
+xgboost version: 2.1.4
+rdkit: ok
+optuna: 4.9.0
+
+Running surrogate_pca_models_gpu.py ...
+
+Logging to surrogate_pca_models_20260629_154520.log
+
+GPU detected: NVIDIA A100-SXM4-80GB, 81920 MiB
+Loading data ...
+  1436 valid molecules
+  91 Butina clusters
+  217 RDKit features
+
+############################################################
+# Two-stage PCA (group PC1s + pool 95%) — per-target fit
+# Output: models_reduced.pkl
+############################################################
+
+Working on pCMC
+  filter_outliers: 1234 → 1234 (-0)
+  Two-stage PCA: 217 raw → 4 group PC1s + 43 pool PCs = 47 features
+  NN isolation filter: 1234 → 1234 (-0)
+
+  ### TEST SPLIT 0
+    R²(val)=0.344  {'learning_rate': 0.1486898221028861, 'max_depth': 5, 'n_estimators': 233}
+    R²(val)=0.675  {'learning_rate': 0.1425807665195059, 'max_depth': 3, 'n_estimators': 267}
+    R²(val)=0.491  {'learning_rate': 0.056102989582422165, 'max_depth': 4, 'n_estimators': 409}
+    R²(val)=0.544  {'learning_rate': 0.08785775561061611, 'max_depth': 4, 'n_estimators': 445}
+    R²(val)=0.570  {'learning_rate': 0.17503486102468618, 'max_depth': 3, 'n_estimators': 366}
+  Ensemble R² = 0.386
+
+  ### TEST SPLIT 1
+    R²(val)=0.416  {'learning_rate': 0.06924646489922441, 'max_depth': 10, 'n_estimators': 167}
+    R²(val)=0.588  {'learning_rate': 0.15025301687397713, 'max_depth': 6, 'n_estimators': 362}
+    R²(val)=0.670  {'learning_rate': 0.1580330667222111, 'max_depth': 4, 'n_estimators': 277}
+    R²(val)=0.565  {'learning_rate': 0.043702242685599024, 'max_depth': 6, 'n_estimators': 419}
+    R²(val)=0.486  {'learning_rate': 0.023466681101052166, 'max_depth': 3, 'n_estimators': 497}
+  Ensemble R² = 0.647
+
+  ### TEST SPLIT 2
+    R²(val)=0.461  {'learning_rate': 0.028021824716182715, 'max_depth': 3, 'n_estimators': 177}
+    R²(val)=0.662  {'learning_rate': 0.10430636317189694, 'max_depth': 4, 'n_estimators': 261}
+    R²(val)=0.543  {'learning_rate': 0.12451629574132211, 'max_depth': 3, 'n_estimators': 304}
+    R²(val)=0.531  {'learning_rate': 0.07419743203930736, 'max_depth': 5, 'n_estimators': 374}
+    R²(val)=0.709  {'learning_rate': 0.1179571207765657, 'max_depth': 3, 'n_estimators': 496}
+  Ensemble R² = 0.458
+
+  ### TEST SPLIT 3
+    R²(val)=0.620  {'learning_rate': 0.03245689049057178, 'max_depth': 3, 'n_estimators': 427}
+    R²(val)=0.299  {'learning_rate': 0.029868608405093405, 'max_depth': 3, 'n_estimators': 233}
+    R²(val)=0.561  {'learning_rate': 0.16299793463433573, 'max_depth': 3, 'n_estimators': 259}
+    R²(val)=0.517  {'learning_rate': 0.03096416398488329, 'max_depth': 4, 'n_estimators': 210}
+    R²(val)=0.295  {'learning_rate': 0.17477729925451493, 'max_depth': 3, 'n_estimators': 125}
+  Ensemble R² = 0.652
+
+  ### TEST SPLIT 4
+    R²(val)=0.516  {'learning_rate': 0.0294091962856055, 'max_depth': 6, 'n_estimators': 424}
+    R²(val)=0.443  {'learning_rate': 0.010035951630516888, 'max_depth': 7, 'n_estimators': 203}
+    R²(val)=0.646  {'learning_rate': 0.09927381443675666, 'max_depth': 6, 'n_estimators': 208}
+    R²(val)=0.666  {'learning_rate': 0.1978109117755017, 'max_depth': 3, 'n_estimators': 194}
+    R²(val)=0.606  {'learning_rate': 0.0512094356969025, 'max_depth': 8, 'n_estimators': 471}
+  Ensemble R² = 0.483
+  Checkpoint saved → models_reduced.pkl
+
+Working on AW_ST_CMC
+  filter_outliers: 860 → 836 (-24)
+  Two-stage PCA: 217 raw → 4 group PC1s + 41 pool PCs = 45 features
+  NN isolation filter: 836 → 836 (-0)
+
+  ### TEST SPLIT 0
+    R²(val)=0.541  {'learning_rate': 0.026146026842017635, 'max_depth': 10, 'n_estimators': 292}
+    R²(val)=0.267  {'learning_rate': 0.01910278961383862, 'max_depth': 10, 'n_estimators': 139}
+    R²(val)=0.326  {'learning_rate': 0.12567403772358357, 'max_depth': 3, 'n_estimators': 326}
+    R²(val)=0.222  {'learning_rate': 0.20554928516037255, 'max_depth': 6, 'n_estimators': 284}
+    R²(val)=0.570  {'learning_rate': 0.03311141222540499, 'max_depth': 4, 'n_estimators': 179}
+  Ensemble R² = -0.095
+
+  ### TEST SPLIT 1
+    R²(val)=0.419  {'learning_rate': 0.23756328491106019, 'max_depth': 5, 'n_estimators': 132}
+    R²(val)=0.360  {'learning_rate': 0.022001206668679774, 'max_depth': 4, 'n_estimators': 404}
+    R²(val)=0.110  {'learning_rate': 0.010720249004919491, 'max_depth': 4, 'n_estimators': 114}
