@@ -21,9 +21,11 @@
  %This manuscript contributes a valuable dataset (SurfPro-MD) through extensive and time-consuming MD simulations for 1436 surfactant molecules. The authors' effort in systematically training nine individual models for distinct properties is commendable and ensures evaluation rigor. However, the work lacks algorithmic innovation, relying on conventional RDKit descriptors and XGBoost. To meet the high standards of this journal, the authors should benchmark their results against modern architectures (e.g., Graph Neural Networks). I recommend Major Revision; while the dataset is a significant resource, the machine learning methodology requires more novelty.
  %Scientific comments:
  %1.  While the dataset and evaluation protocol are rigorous, the machine learning methodology appears overly simplistic for a study aiming for high-impact publication in a journal like JCIM. The current approach relies entirely on traditional hand-crafted 2D descriptors (RDKit) and a gradient-boosted decision tree model (XGBoost). To elevate the methodological rigor beyond a basic baseline, the authors should benchmark more advanced architectures, such as Graph Neural Networks (e.g., Chemprop, AttentiveFP) or pre-trained molecular transformers (e.g., MoLFormer). Compared to fixed-length RDKit descriptors, these modern representation learning methods—potentially augmented with 3D geometric features derived from the MD simulations—are far better suited to capture the complex topological and spatial determinants of surfactant interfacial behavior, especially for targets where the current XGBoost models show limited predictive power.I see where they are coming from, but I disagree. We did try ChemProp and was outperformed by XGBoost, but I guess it would not be difficult to rerun Chemprop and MolFormer and show the comparison in an appendix. It seems silly to me to show an "ablation study" (an "ad-lation study"?) that compares against more complicated models, but we do what we must. We can address the 3D argument by highlighting that we need the model to extrapolate to unseen molecules for which 3D information is not available. We chose RDKit features because they are very easily and cheaply accessible for screening large libraries or as surrogates in generative modeling; I am sure we can make this clearer in the text.
+ %We will not address this reviewer concern in this revision.
 
 
  %2.  Regarding MD methodology, relying solely on Open Babel's --gen3d for initial structures may be insufficient for accurate AM1-BCC charge assignment and GAFF2 parameterization, as these are highly sensitive to molecular conformation. The authors should perform a sensitivity analysis on a representative subset to determine if higher-level geometric optimizations (e.g., GFN2-xTB or DFT) significantly impact the calculated properties, such as surface tension and viscosity. This is crucial to ensure that the current simplified workflow does not introduce systematic biases into the resulting database. Hmmm... I do not think that this is really a concern, but it can be done. I can pick a few molecules, pre-optimise them with another method (I should say that the AM1-BCC charge generation contains an optimisation already, of course), and compute charges again. It is true that we did not test that. I do not think we need to run the full simulations to prove that this is the same, but we could, e.g. compute the diffusion coefficents again as these are pretty fast.
+ %We will not address this reviewer concern in this revision.
 
  %3.  While Figure 3 demonstrates a good agreement between MD simulations and experimental data for small alcohols and carboxylic acids, the choice of these simple molecules for validation is questionable given that the study focuses on surfactants. Surfactants possess distinct structural features—such as long hydrophobic tails and diverse polar head groups—that lead to complex phenomena like micellization and specific interfacial packing, which simple alcohols like methanol or ethanol cannot represent. To strengthen the credibility of the simulation protocol, the authors should explain why surfactant-specific systems were omitted from this validation step and are strongly encouraged to include comparison data for at least a few representative surfactants (e.g., SDS or a common non-ionic surfactant) to justify the transferability of the MD parameters to the target systems.We chose these molecules because they are simple and show clear differences between the homologues. And because experimental measurements on real surfactants are hard. If we pick more complex surfactants, the homologues have similar properties whereas surfactants with clearly different results have extremely different structures. Only for those "simple" molecules do we get RELIABLE experimental measurements in which structural differences are clearly linked to differences in property. I do not know if it is enough t explain this clearly in the manuscript or if we should actually run additional simulations.
 
@@ -68,6 +70,7 @@
 
 
 \documentclass[11pt]{aime}
+\usepackage{lmodern}
 
 % ─────────────────────────────────────────────────────────────────────
 % Metadata
@@ -91,12 +94,12 @@
 \contribution[*]{Corresponding author}  % Generally Rocío
 
 \correspondence{\email{rocio.mercado@chalmers.se}}
-\codeavailability{\url{https://github.com/ailab-bio/project-name}}
+\codeavailability{\url{https://github.com/Corteswain/SurfPro-MD}}
 \dataavailability{\url{https://doi.org/XX.XXXX/zenodo.XXXXXXX}}
 \date{\today}
 
 \abstract{%
-Surfactant property prediction currently requires either costly wet-lab measurements or computationally expensive molecular dynamics simulations, creating a bottleneck for high-throughput screening and data-driven molecular design. We present SurfPro-MD, an open-source surrogate modelling tool that predicts nine physicochemical surfactant properties directly from SMILES representations in milliseconds, requiring no experimental data or simulation expertise. The tool covers both experimentally reported properties --- critical micelle concentration (pCMC), surface tension at the CMC ($\gamma_{\mathrm{CMC}}$), surface excess concentration ($\Gamma_{\max}$), minimum molecular area ($A_{\min}$), and adsorption efficiency (pC$_{20}$) --- and simulation-derived properties --- solute and solvent diffusion coefficients ($D_{\mathrm{MOL}}$, $D_{\mathrm{SOL}}$), bulk viscosity ($\eta$), and interfacial surface tension ($\gamma$). The underlying dataset combines curated experimental data from the SurfPro database\cite{hodl_surfpro_2025} with four additional properties generated from systematic atomistic MD simulations across 1436 surfactant molecules. Surrogate models are implemented as ensembles of XGBoost regressors trained on RDKit molecular descriptors and evaluated using a cluster-based data splitting strategy that provides realistic estimates of generalisation to chemically novel compounds. The tool is designed for direct integration into virtual screening pipelines and as a fast scoring function in generative molecular design frameworks. Planned extensions include applicability domain estimation --- flagging query molecules that are structurally distant from the training set --- and per-prediction feature attribution via SHAP analysis, allowing users to assess not only what a molecule's predicted properties are, but how reliably and for what structural reasons. All data, models, and code are openly available.
+Surfactant property prediction currently requires either costly wet-lab measurements or computationally expensive molecular dynamics simulations, creating a bottleneck for high-throughput screening and data-driven molecular design. We present SurfPro-MD, an open-source surrogate modelling tool that predicts nine physicochemical surfactant properties directly from SMILES representations in milliseconds, requiring no experimental data or simulation expertise. The tool covers both experimentally reported properties --- critical micelle concentration (pCMC), surface tension at the CMC ($\gamma_{\mathrm{CMC}}$), surface excess concentration ($\Gamma_{\max}$), minimum molecular area ($A_{\min}$), and adsorption efficiency (pC$_{20}$) --- and simulation-derived properties --- solute and solvent diffusion coefficients ($D_{\mathrm{MOL}}$, $D_{\mathrm{SOL}}$), bulk viscosity ($\eta$), and interfacial surface tension ($\gamma$). The underlying dataset combines curated experimental data from the SurfPro database\cite{hodl_surfpro_2025} with four additional properties generated from systematic atomistic MD simulations across 1436 surfactant molecules. Surrogate models are implemented as ensembles of XGBoost regressors trained on RDKit molecular descriptors and evaluated using a cluster-based data splitting strategy that provides realistic estimates of generalisation to chemically novel compounds. The tool is designed for direct integration into virtual screening pipelines and as a fast scoring function in generative molecular design frameworks. Uncertainty estimation is provided through ensemble disagreement, nearest-neighbour applicability domain analysis, and conformal prediction intervals; per-prediction SHAP feature attribution is included in the supplementary material, allowing users to assess not only what a molecule's predicted properties are, but how reliably and for what structural reasons. All data, models, and code are openly available.
 }
 
 \begin{document}
@@ -157,7 +160,7 @@ All code, simulation workflows, and trained models are available via a public Gi
 \paragraph{Curation.}
 We base our work on the SurfPro\cite{hodl_surfpro_2025} database, a recently released curated collection of 1623 surfactant molecules covering eight structural categories: anionic, cationic, non-ionic, zwitterionic, and their gemini variants, including a sub-category of sugar-based non-ionic surfactants. For each molecule, SurfPro provides up to six properties derived from experimental surface tension--concentration measurements: the critical micelle concentration (pCMC), surface tension at the CMC ($\gamma_{\mathrm{CMC}}$), surface pressure at the CMC ($\Pi_{\mathrm{CMC}}$), maximum surface excess concentration ($\Gamma_{\max}$), minimum molecular area at the air--water interface ($A_{\min}$), and adsorption efficiency (pC$_{20}$). Of these, pCMC, $\gamma_{\mathrm{CMC}}$, and $\Pi_{\mathrm{CMC}}$ are read directly from the experimental $\gamma$--concentration curve, while $\Gamma_{\max}$, $A_{\min}$, and pC$_{20}$ are quantities derived from the same curve via the Gibbs adsorption isotherm; all six are grounded in experimental measurements. Property coverage is non-uniform: only 647 of the 1623 entries have all six properties measured, and several properties are reported for fewer than half of the entries. The overall curation pipeline is shown in Figure~\ref{fig:overview}.
 
-To this experimentally-derived foundation we add four properties obtained from atomistic MD simulations performed in this work (full simulation protocol described in the next section): the solute self-diffusion coefficient ($D_{\mathrm{MOL}}$), the solvent self-diffusion coefficient ($D_{\mathrm{SOL}}$), the bulk shear viscosity ($\eta$), and the air--water surface tension ($\gamma$). In contrast to the experimental properties, these MD-derived values are computed for \textit{every} curated entry, providing complete coverage across the dataset. The combined set of nine properties (six experimental, four MD-derived; note that surface tension appears in both forms, $\gamma_{\mathrm{CMC}}$ from experiment and $\gamma$ from simulation) constitutes the SurfPro-MD dataset used throughout this work.
+To this experimentally-derived foundation we add four properties obtained from atomistic MD simulations performed in this work (full simulation protocol described in the next section): the solute self-diffusion coefficient ($D_{\mathrm{MOL}}$), the solvent self-diffusion coefficient ($D_{\mathrm{SOL}}$), the bulk shear viscosity ($\eta$), and the air--water surface tension ($\gamma$). In contrast to the experimental properties, these MD-derived values are computed for \textit{every} curated entry, providing complete coverage across the dataset. The combined set of nine properties (five experimental, four MD-derived; note that surface tension appears in both forms, $\gamma_{\mathrm{CMC}}$ from experiment and $\gamma$ from simulation) constitutes the SurfPro-MD dataset used throughout this work.
 
 Several quality-control filters were applied to the original SurfPro entries before MD simulation. A small number of entries (85 of 1623) contained invalid or chemically unreasonable SMILES strings and were removed, leaving 1538 entries. Salts were stripped of their counterions, and all SMILES strings were canonicalised using RDKit (version 2025.09.3) \cite{landrum2006rdkit}. Some surfactant cores were present multiple times in the original dataset under different counterions; to ensure consistency with our MD simulations, which use sodium and chloride as the only counterions, we retained a single representative entry per unique core, preferring the form most consistent with our counterion choice. Removing duplicates arising from alternative counterions yielded the final set of 1436 unique surfactant molecules used in all subsequent analyses.
 To inform property selection and identify potential redundancy, target-property distributions and pairwise Pearson correlations were computed across the curated dataset and are shown in Figure~\ref{fig:data}\textbf{a} and \textbf{b}, respectively.
@@ -243,6 +246,37 @@ For a given test set, the resulting 5 optimised models (one per train/validation
 
 To investigate whether any of the RDKit features are particularly important for surfactant behaviour, permutation importance was used to identify the top 10 features in each of the 5 test sets in each of the 9 targets. The importance was summed up across the 5 test sets to obtain a top 10 list for each target property. Further implementation details, including the full optimisation setup and model configuration, are provided in the accompanying GitHub repository to ensure full reproducibility.
 
+\paragraph{Feature representation ablation.}
+To verify that raw RDKit descriptors represent the best choice of molecular representation for this task, we systematically compared three alternatives using the identical cluster-based splitting protocol and HPO setup.
+
+First, we evaluated Morgan circular fingerprints across nine configurations combining three radii ($r \in \{2, 3, 4\}$) and three bit-vector lengths ($b \in \{512, 1024, 2048\}$), each used as a raw binary fingerprint vector.
+
+Second, we applied two PCA-based compression strategies to the same 217 RDKit descriptors. In the \emph{global PCA} approach, all descriptors were standardised and projected onto principal components retaining 95\% of the variance, reducing the feature set to between 35 and 46 components depending on the target-specific molecule subset.
+
+In the \emph{two-stage PCA} approach, descriptors were first partitioned into chemically interpretable groups based on naming conventions: topological indices (Chi, Kappa), five families of surface-area distribution bins (PEOE\_VSA, SMR\_VSA, SlogP\_VSA, EState\_VSA, VSA\_EState), molecular mass variants, ring count descriptors, BCUT2D global descriptors, and MQN fragment counts. Within each group, a single principal component was extracted. Groups for which this PC1 explained at least 80\% of within-group variance (in practice: Chi, Kappa, and MolWt families) were retained as single interpretable scalars; all remaining groups and ungrouped descriptors were pooled and compressed by global PCA at 95\% variance. This yielded 4 group-level features combined with 36--47 pool-level components per target, giving approximately 40--51 features in total. Both PCA models were fitted independently per target property on the molecule subset used for that target.
+
+
+\subsection{Uncertainty Estimation}
+\label{sec:methods:uncertainty}
+
+Three complementary uncertainty diagnostics are evaluated for SurfPro-MD, each targeting a different aspect of prediction reliability.
+
+\paragraph{Applicability domain via nearest-neighbour distance.}
+To flag predictions that require extrapolation beyond the training distribution, we compute, for each test molecule, the Euclidean distance to its nearest neighbour in the training set within the standardised RDKit feature space. A large nearest-neighbour (NN) distance indicates structural novelty relative to the training data and is expected to correlate with increased prediction error. We evaluate this relationship using the Spearman rank correlation $\rho$ between NN distances and absolute test errors across all five test splits per property. Points with NN distance exceeding 40 (in standardised feature space) are excluded as structural isolates.
+
+\paragraph{Ensemble disagreement.}
+Each property model comprises an ensemble of five XGBoost regressors trained on distinct train/validation partitions of the same test split. The standard deviation of the five individual model predictions serves as a per-molecule uncertainty estimate reflecting the sensitivity of the prediction to the choice of training data. A high ensemble standard deviation indicates substantial disagreement among models, which is expected to correlate with larger prediction errors. We assess this relationship via Spearman correlation and by comparing ensemble standard deviation directly against absolute test error.
+
+\paragraph{Conformal prediction.}
+To translate uncertainty estimates into prediction intervals with statistical coverage guarantees, we implement cross-conformal regression \cite{vovk_algorithmic_2005,angelopoulos_gentle_2023}. For each target property and each of the five test splits, the absolute residuals $|\hat{y}_i - y_i|$ from each fold model evaluated on its held-out validation set are pooled across all five folds to form a calibration set of nonconformity scores. For a nominal coverage level $1-\alpha$, the conformal quantile is
+\begin{equation}
+    q = \mathrm{Quantile}\!\left(\{s_i\},\;\min\!\left(1,\,(1-\alpha)\!\left(1+\frac{1}{n_\mathrm{cal}}\right)\right)\right),
+    \label{eq:conformal_quantile}
+\end{equation}
+where $n_\mathrm{cal}$ is the calibration set size and the factor $(1+1/n_\mathrm{cal})$ provides the standard finite-sample coverage correction \cite{angelopoulos_gentle_2023}. The resulting prediction interval for a new molecule with predicted value $\hat{y}$ is $[\hat{y}-q,\,\hat{y}+q]$.
+
+Calibration is assessed by plotting nominal coverage $(1-\alpha)$ against empirical coverage --- the fraction of test molecules whose true value falls within the corresponding interval --- swept across 60 values of $\alpha$. A perfectly calibrated model lies on the diagonal; deviations quantify the degree to which the exchangeability assumption underlying conformal prediction is violated by the cluster-based splitting strategy.
+
 
 \section{Results}
 \label{results}
@@ -259,9 +293,11 @@ Since many surfactant-relevant properties are physically interrelated, we examin
 
 To assess the reliability of the overall MD protocol—including force field assignment, system preparation, equilibration strategy, and production simulation settings—we performed additional simulations on chemically well-characterised reference systems. These systems were not part of the SurfPro database and were selected to provide independent validation of the simulation workflow.
 
-Figure~\ref{fig:MD}\textbf{a} shows the concentration-dependent shear viscosity for aqueous solutions of several small carboxylic acids. The simulations reproduce the experimentally observed trends across all systems, capturing both the increase in viscosity with concentration and the relative ordering between different solutes. For methanol and ethanol, the experimental reference lies well within the simulations' error bar, whereas the simulations of the 1-propanol solution seem to overestimate the viscosity by a small margin. The quantitative agreement of concentration-dependent trends suggests that our simulations are able to capture the physical reality of these systems.
+Short-chain alcohols (methanol, ethanol, propanol) and carboxylic acids (formic, acetic, propionic, valeric acid) were selected as reference compounds for three reasons. First, they form well-characterised homologous series for which reliable experimental data is available across a range of compositions. Second, the systematic increase in chain length produces monotone, clearly resolved differences in both surface tension and viscosity, providing a stringent test of the model's ability to recover structure--property trends. Third, unlike actual surfactants, these simple molecules do not undergo micellisation or interface-specific self-assembly on the timescales accessible to our simulations, so a direct quantitative comparison with experiment at our simulation conditions is possible. For actual surfactants, molecules with similar structures tend to have very similar properties, while molecules with clearly distinct experimental responses differ so substantially in structure that no clean homologous comparison is available---making it impossible to construct the kind of systematic, monotone validation series used here.
 
-A similar trend is observed for surface tension (Figure~\ref{fig:MD}\textbf{b}). The simulations correctly reproduce the relative changes in surface tension as a function of composition and maintain the ordering between homologous systems. Small systematic deviations in magnitude are observed, which is expected given known limitations of the TIP4P/2005 water model in reproducing absolute interfacial properties. However, since the primary objective of this work is comparative screening of surfactants, preserving relative trends across chemical space is more relevant than reproducing absolute experimental values.
+Figure~\ref{fig:MD}\textbf{a} shows the concentration-dependent surface tension for aqueous solutions of methanol, ethanol, and propanol. The simulations correctly reproduce the relative changes in surface tension as a function of composition and maintain the ordering between homologous systems. For methanol and ethanol, the experimental reference lies well within the simulations' error bars, whereas the propanol simulation slightly overestimates the reduction in surface tension at higher concentrations. Small systematic deviations in magnitude are observed, which is expected given known limitations of the TIP4P/2005 water model in reproducing absolute interfacial properties.
+
+A similar trend is observed for viscosity (Figure~\ref{fig:MD}\textbf{b}). The simulations reproduce the experimentally observed trends for aqueous solutions of formic, acetic, propionic, and valeric acid, capturing both the increase in viscosity with concentration and the relative ordering between different solutes. Since the primary objective of this work is comparative screening of surfactants, preserving relative trends across chemical space is more relevant than reproducing absolute experimental values, and the concentration-dependent agreement observed in both panels confirms that our simulation framework fulfils this requirement.
 
 Overall, these results indicate that the employed MD protocol provides a consistent and physically reasonable description of concentration-dependent structural and dynamical behaviour across different chemical systems. In particular, the ability to reproduce relative property changes across composition suggests that the simulation framework is suitable for generating internally consistent training data for surrogate modelling.
 
@@ -272,6 +308,7 @@ The overall distributions of MD-derived and experimental properties are shown in
 
 \begin{table}[ht]
 \centering
+\small
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Target} & \textbf{$R^2$ (mean ± std)} & \textbf{Spearman $\rho$ (mean ± std)} & \textbf{\# Before Cleaning} & \textbf{\# After Cleaning}  \\
@@ -306,6 +343,30 @@ pCMC model is the strongest in this group ($R^2 = 0.518 \pm 0.143$, $\rho = 0.73
 To gain insight into the molecular descriptors driving model predictions, we performed a permutation-feature-importance analysis (see Methods) and examined which descriptors appeared in the top-10 most important features across multiple target models. A small number of descriptors recur across the nine targets: one feature appears in the top-10 list of six different models, and two further features appear in five each. The three most recurrent descriptors are VSA\_EState9, which captures the distribution of molecular surface area across specific electronic environments; fr\_NH0, reflecting the presence of tertiary amine functionalities; and BCUT2D\_MRLOW, a global descriptor related to molecular polarisability and size. Despite this recurrence, the overall overlap of important features across targets remains limited, indicating that no single descriptor universally governs all surfactant properties considered here; rather, different properties depend on partially distinct aspects of molecular structure, consistent with the multifaceted nature of surfactant behaviour. Notably, all three of the most-recurrent descriptors contribute to models predicting diffusion-related properties, suggesting that they capture structural characteristics relevant for molecular mobility in solution.
 
 
+\paragraph{Feature representation ablation.}
+Table~\ref{tab:ablation} summarises performance for three representative targets across all evaluated feature strategies. Morgan circular fingerprints consistently underperform the RDKit-based approach across all targets and configurations. The best-performing Morgan variant (radius 4, 1024 bits) achieves $R^2 = 0.246 \pm 0.142$ for pCMC, $R^2 = 0.506 \pm 0.055$ for $D_{\mathrm{SOL}}$, and $R^2 = 0.176 \pm 0.054$ for $\eta$ --- compared to $0.518 \pm 0.143$, $0.920 \pm 0.012$, and $0.818 \pm 0.044$ for the raw RDKit baseline. The gap is most pronounced for transport properties, which are most sensitive to the explicit physicochemical features encoded by RDKit descriptors --- surface area distribution, partial charge distribution, molecular weight --- that circular fingerprints do not capture directly.
+
+Both PCA-based variants of the RDKit descriptors yield performance slightly below the full 217-feature set. The two-stage PCA ($R^2 = 0.518 \pm 0.115$ for pCMC, $0.845 \pm 0.044$ for $D_{\mathrm{SOL}}$, $0.772 \pm 0.084$ for $\eta$) narrows the gap relative to the global PCA approach ($0.471 \pm 0.149$, $0.825 \pm 0.039$, $0.730 \pm 0.072$) but neither recovers the full-descriptor performance. The fact that compression leads to a measurable drop indicates that the 217 RDKit features do not introduce significant overfitting on this dataset, and that the raw descriptor set represents the best available balance of predictive performance and feature-level interpretability.
+
+\begin{table}[ht]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Representation} & \multicolumn{2}{c}{\textbf{pCMC}} & \multicolumn{2}{c}{\textbf{$D_{\mathrm{SOL}}$}} & \multicolumn{2}{c}{\textbf{$\eta$}} \\
+ & $R^2$ & $\rho$ & $R^2$ & $\rho$ & $R^2$ & $\rho$ \\
+\midrule
+Raw RDKit (217 features)                  & $0.518 \pm 0.143$ & $0.731 \pm 0.099$ & $0.920 \pm 0.012$ & $0.953 \pm 0.009$ & $0.818 \pm 0.044$ & $0.923 \pm 0.031$ \\
+RDKit + two-stage PCA ($\sim$40--51 feat.)& $0.518 \pm 0.115$ & $0.726 \pm 0.098$ & $0.845 \pm 0.044$ & $0.912 \pm 0.023$ & $0.772 \pm 0.084$ & $0.911 \pm 0.022$ \\
+RDKit + global PCA (35--46 PCs)           & $0.471 \pm 0.149$ & $0.702 \pm 0.115$ & $0.825 \pm 0.039$ & $0.901 \pm 0.020$ & $0.730 \pm 0.072$ & $0.887 \pm 0.046$ \\
+Morgan ($r$=4, $b$=1024)                  & $0.246 \pm 0.142$ & $0.510 \pm 0.166$ & $0.506 \pm 0.055$ & $0.705 \pm 0.047$ & $0.176 \pm 0.054$ & $0.537 \pm 0.044$ \\
+\bottomrule
+\end{tabular}%
+}
+\caption{Feature representation ablation for three representative targets (pCMC: best experimental target; $D_{\mathrm{SOL}}$: best MD target; $\eta$: strong MD target). All variants use the same cluster-based evaluation protocol and 30-trial HPO. Only the best-performing Morgan configuration is shown; results for all 9 Morgan variants are consistent with this trend.}
+\label{tab:ablation}
+\end{table}
+
 \paragraph{Comparison with prior SurfPro models and screening utility.}
 Parity plots for all nine target properties are shown in Figure~\ref{fig:results}\textbf{c}--\textbf{j}. For visual clarity, each panel corresponds to a single ensemble (one test set and its associated models) per property; because each ensemble is constructed from a different holdout test set, the displayed performance is not necessarily representative of the average performance reported in Table~\ref{tab:results:model_performance}. In particular, $A_{\min}$ and pC$_{20}$ perform better on average than their parity plots would suggest, reflecting variability between test sets rather than a systematic failure of the models. Direct numerical comparison with the SurfPro models reported by Hödl et al.\cite{hodl_surfpro_2025} is not straightforward, because random splitting in the original study can place structurally similar molecules in both training and test sets and thereby yield overly optimistic generalisation estimates. The cluster-based splitting strategy employed here provides a more stringent assessment of generalisation to novel compounds, at the cost of producing nominally lower performance metrics. Taken together, the moderate-to-high rank correlations across both MD-derived and experimental targets, combined with the consistency of these trends across independent data partitions, indicate that the SurfPro-MD surrogate models are well suited for comparative surfactant screening in both academic and industrial settings.
 
@@ -315,14 +376,73 @@ Parity plots for all nine target properties are shown in Figure~\ref{fig:results
 \label{fig:MD}
 \end{figure}
 
-\begin{figure}
-\includegraphics[width=0.95\textwidth]{figures/full_results.pdf}
+\begin{figure}[p]
+\includegraphics[width=0.95\textwidth,height=0.88\textheight,keepaspectratio]{figures/full_results.pdf}
     \caption{
 (\textbf{a}) Ensemble ML performance across nine target properties, quantified by $R^2$ and Spearman $\rho$ over test splits.
 (\textbf{b}-\textbf{j}) Parity plots for all nine target properties. Each panel shows predictions versus reference values for all five independent held-out test sets; point colours distinguish the five test splits (viridis scale). The dashed lines indicate the identity line.
 }
 \label{fig:results}
 \end{figure}
+
+\subsection{Uncertainty Estimation}
+\label{sec:results:uncertainty}
+
+\paragraph{Nearest-neighbour distance.}
+Figure~\ref{fig:unc_nndist} shows absolute test error against NN distance to the training set for all nine target properties. Spearman correlations are positive for most targets, with the strongest signal observed for pCMC ($\rho = 0.34$), pC$_{20}$ ($\rho = 0.34$), and $\eta$ ($\rho = 0.28$). Correlations are weak or negligible for $\gamma_{\mathrm{CMC}}$ ($\rho = 0.04$) and $\gamma$ ($\rho = 0.11$), indicating that proximity in RDKit feature space is not predictive of prediction quality for these targets. Notably, $D_{\mathrm{MOL}}$ shows a marginally negative correlation ($\rho = -0.06$), suggesting that the feature space does not capture the structural variation relevant for solute diffusion.
+
+\paragraph{Ensemble disagreement.}
+Figure~\ref{fig:unc_ensstd} shows absolute test error against ensemble standard deviation across all test splits. The scatter plots include the identity line $y = x$ as a reference: points below this line indicate an underestimate of error (overconfidence), while points above indicate an overestimate (underconfidence). Spearman correlations are highest for $D_{\mathrm{MOL}}$ ($\rho = 0.45$), $A_{\min}$ ($\rho = 0.31$), pCMC ($\rho = 0.29$), $D_{\mathrm{SOL}}$ ($\rho = 0.28$), and $\eta$ ($\rho = 0.28$). For $\gamma$ ($\rho = 0.06$) and $\gamma_{\mathrm{CMC}}$ ($\rho = 0.07$), ensemble disagreement carries almost no information about prediction error. The complementarity of the two heuristics is illustrated by $D_{\mathrm{MOL}}$, for which NN distance fails ($\rho = -0.06$) but ensemble standard deviation is the most informative signal across all targets ($\rho = 0.45$).
+
+\paragraph{Conformal calibration.}
+Figure~\ref{fig:unc_conformal} shows calibration curves for all nine target properties. Table~\ref{tab:conformal_coverage} reports empirical coverage at nominal levels from 50\% to 95\%, along with the gap at the 90\% nominal level. Three distinct calibration regimes are observed.
+
+The first group --- pCMC ($\Delta = -0.00$) and $D_{\mathrm{MOL}}$ ($\Delta = -0.00$) --- shows near-perfect calibration, with the curve lying essentially on the diagonal throughout. For these targets, the calibration residuals from validation folds are representative of test-set errors despite the cluster-based splitting strategy, indicating that the distributional shift introduced by structural dissimilarity between train/validation and test clusters is minimal for these properties.
+
+The second group --- $\gamma_{\mathrm{CMC}}$ ($\Delta = -0.02$), $D_{\mathrm{SOL}}$ ($\Delta = -0.04$), $\gamma$ ($\Delta = -0.03$), and $\eta$ ($\Delta = -0.05$) --- shows systematic under-coverage: empirical coverage falls below nominal throughout the range, most prominently at intermediate coverage levels (60--80\%). For these targets, the model has learned strong in-distribution patterns (particularly true for the MD-derived targets, which achieve high $R^2$ and Spearman $\rho$), so calibration residuals are small and the resulting intervals are tight. When applied to test clusters that are structurally dissimilar from the training data, these intervals are insufficiently wide to capture the inflated errors, causing coverage to fall below the nominal guarantee.
+
+The third group --- $\Gamma_{\max}$ ($\Delta = +0.03$), $A_{\min}$ ($\Delta = +0.06$), and pC$_{20}$ ($\Delta = +0.01$) --- shows over-coverage: empirical coverage consistently exceeds nominal. These are among the most difficult targets in the dataset (lowest $R^2$). Critically, their difficulty is not concentrated in specific structural clusters but distributed uniformly across chemical space: both the validation folds and the test clusters are similarly challenging for the model. The calibration residuals therefore already incorporate the characteristic error magnitude for this property, causing the resulting intervals to be wide enough --- or even conservative --- relative to the actual test errors.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrrrrrr}
+\toprule
+\textbf{Target} & $\rho_\mathrm{NN}$ & $\rho_\mathrm{std}$ & \multicolumn{5}{c}{\textbf{Empirical coverage at nominal level}} & \textbf{Gap @ 0.90}\\
+ & & & 0.50 & 0.60 & 0.70 & 0.80 & 0.90 & \\
+\midrule
+pCMC                        & $0.34$ & $0.29$ & $0.46$ & $0.56$ & $0.68$ & $0.81$ & $0.90$ & $-0.00$ \\
+$\gamma_{\mathrm{CMC}}$     & $0.04$ & $0.07$ & $0.44$ & $0.52$ & $0.62$ & $0.76$ & $0.88$ & $-0.02$ \\
+$\Gamma_{\max}$             & $0.12$ & $0.24$ & $0.61$ & $0.74$ & $0.83$ & $0.88$ & $0.93$ & $+0.03$ \\
+$A_{\min}$                  & $0.27$ & $0.31$ & $0.58$ & $0.65$ & $0.74$ & $0.85$ & $0.96$ & $+0.06$ \\
+pC$_{20}$                   & $0.34$ & $0.25$ & $0.56$ & $0.66$ & $0.74$ & $0.83$ & $0.91$ & $+0.01$ \\
+$D_{\mathrm{MOL}}$          & $-0.06$ & $0.45$ & $0.55$ & $0.64$ & $0.76$ & $0.81$ & $0.90$ & $-0.00$ \\
+$D_{\mathrm{SOL}}$          & $0.26$ & $0.28$ & $0.44$ & $0.53$ & $0.64$ & $0.75$ & $0.86$ & $-0.04$ \\
+$\gamma$                    & $0.11$ & $0.06$ & $0.50$ & $0.60$ & $0.68$ & $0.77$ & $0.87$ & $-0.03$ \\
+$\eta$                      & $0.28$ & $0.28$ & $0.38$ & $0.47$ & $0.57$ & $0.71$ & $0.85$ & $-0.05$ \\
+\bottomrule
+\end{tabular}
+\caption{Uncertainty estimation summary. $\rho_\mathrm{NN}$: Spearman correlation between NN distance (test to training) and absolute prediction error. $\rho_\mathrm{std}$: Spearman correlation between ensemble standard deviation and absolute prediction error. Empirical coverage columns report the fraction of test molecules whose true value falls within the conformal prediction interval at the given nominal coverage level, averaged across five test splits. Gap @ 0.90 is the signed difference between empirical and nominal coverage at the 90\% level.}
+\label{tab:conformal_coverage}
+\end{table}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{../surrogate-models/unc_error_vs_nndist.pdf}
+    \caption{Absolute prediction error versus nearest-neighbour distance to the training set in standardised feature space, for all nine target properties. Each point corresponds to one test molecule; colours distinguish the five independent test splits (viridis scale). The Spearman rank correlation $\rho$ is annotated in each panel. Points with NN distance exceeding 40 are excluded; the number of excluded points is noted where non-zero.}
+    \label{fig:unc_nndist}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{../surrogate-models/unc_error_vs_ens_std.pdf}
+    \caption{Absolute prediction error versus ensemble standard deviation for all nine target properties. Each point corresponds to one test molecule; colours distinguish the five independent test splits (viridis scale). The dashed diagonal line indicates perfect correspondence between ensemble standard deviation and absolute error. The Spearman rank correlation $\rho$ is annotated in each panel.}
+    \label{fig:unc_ensstd}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{../surrogate-models/unc_conformal_calibration.pdf}
+    \caption{Conformal calibration curves for all nine target properties. Each panel plots nominal coverage $(1-\alpha)$ against empirical coverage (fraction of test molecules whose true value falls within the conformal prediction interval), averaged across five independent test splits. The black diagonal line denotes perfect calibration. Dashed grey lines mark the 90\% nominal and empirical coverage levels. The annotated value shows the empirical coverage achieved at exactly 90\% nominal coverage.}
+    \label{fig:unc_conformal}
+\end{figure}
+
 
 \section{Discussion}
 \label{sec:discussion}
@@ -335,7 +455,20 @@ A key design choice in SurfPro-MD is the cluster-based splitting protocol used d
 
 SurfPro-MD is intended as a first-pass filter rather than a final verdict. For properties where prediction quality is lower --- notably $A_{\min}$, $\Gamma_{\max}$, and $\gamma$ --- predictions should be treated as indicative, and promising candidates identified by the tool should be followed up with targeted simulations or experiments. The ensemble structure of the models provides per-prediction uncertainty estimates that give users a signal about which predictions are most reliable.
 
-Looking ahead, two planned additions will substantially extend the tool's utility. First, applicability domain estimation will flag molecules that lie far from the training set in feature space, allowing users to identify predictions that are likely to be extrapolatory. Second, SHAP-based feature attribution will decompose each prediction into contributions from individual molecular descriptors, making it transparent which structural features are driving each property estimate. Together, these extensions will move SurfPro-MD from a black-box predictor toward an interpretable, trustworthy screening tool suitable for routine use in both academic and industrial settings.
+\paragraph{Uncertainty estimation and the role of distributional shift.}
+The three uncertainty diagnostics reveal a coherent picture that connects model performance, applicability domain, and the structure of the chemical space covered by SurfPro-MD.
+
+For the two uncertainty heuristics --- NN distance and ensemble disagreement --- the signal is strongest where model performance is highest. This is not a coincidence: it reflects a well-known characteristic of gradient-boosted ensembles, which tend to agree confidently on interpolated predictions and disagree near the boundaries of the training distribution. Properties with modest Spearman correlations ($\rho_{\mathrm{NN}}$ or $\rho_{\mathrm{std}} < 0.1$) --- most notably $\gamma$ and $\gamma_{\mathrm{CMC}}$ --- are targets where the model is wrong in ways that are not captured by either structural proximity or ensemble disagreement, indicating a more fundamental limitation of the feature representation or the model's inductive bias for these properties.
+
+The conformal calibration curves reveal a particularly informative pattern: the direction of the deviation from the diagonal is not the same for all properties, and this asymmetry is physically meaningful. For the best-predicted MD-derived targets ($D_{\mathrm{SOL}}$, $\eta$) and for $\gamma_{\mathrm{CMC}}$, the calibration curves fall systematically below the diagonal, indicating under-coverage. This occurs because the model has learned tight, accurate predictions in-distribution, resulting in small calibration residuals and narrow conformal intervals. When these intervals are applied to test molecules from held-out structural clusters --- which are by construction more distant from the training distribution than the validation folds --- the intervals are insufficient to capture the inflated errors, and coverage falls below the nominal level.
+
+By contrast, for $A_{\min}$, $\Gamma_{\max}$, and pC$_{20}$, the calibration curves sit consistently above the diagonal: the model is over-conservative, and requesting 90\% nominal coverage routinely yields 91--96\% empirical coverage. These properties are difficult to predict \textit{uniformly} across chemical space rather than specifically at the boundary of the training distribution. Because the calibration residuals already reflect this uniform difficulty, the resulting conformal intervals are wide enough to cover even the test-set molecules from novel clusters. The over-coverage confirms that these properties are hard everywhere --- not harder in the held-out clusters than in the validation folds.
+
+This has a practical implication for users of SurfPro-MD. For MD-derived properties such as $\eta$ and $D_{\mathrm{SOL}}$, where under-coverage is most pronounced, a user requesting 90\% prediction intervals should expect approximately 85\% actual coverage on structurally novel molecules. Requesting 95\% nominal coverage recovers approximately 92--93\% empirical coverage for these targets (Table~\ref{tab:conformal_coverage}). For $A_{\min}$ and $\Gamma_{\max}$, reported 90\% intervals are already conservative by several percentage points, and no correction is needed. For pCMC and $D_{\mathrm{MOL}}$, where calibration curves lie essentially on the diagonal, the conformal intervals can be trusted at face value.
+
+More broadly, the conformal calibration curve functions as a property-specific fingerprint of the degree to which cluster-based generalisation differs from interpolation. Properties for which the test clusters are genuinely more OOD than the validation folds --- those with tight in-distribution fits and under-coverage --- are precisely the ones where the cluster-based splitting protocol is most stringent. Properties for which the calibration curve exceeds the diagonal reflect targets where the whole chemical space is uniformly hard, and the splitting strategy does not introduce additional difficulty. This distinction is not visible in aggregate performance metrics such as $R^2$ or Spearman $\rho$, making the calibration analysis a complementary diagnostic that reveals structure in the difficulty of the learning problem that aggregate metrics conceal.
+
+Both of these components are already included in SurfPro-MD. Applicability domain estimation is provided through the nearest-neighbour distance analysis described above, flagging predictions that require extrapolation beyond the training distribution. SHAP-based feature attribution has been carried out for all nine targets and is reported in the supplementary material, decomposing each prediction into contributions from individual molecular descriptors and making it transparent which structural features are responsible for each property estimate. Together, these components move SurfPro-MD from a black-box predictor toward an interpretable, trustworthy screening tool suitable for routine use in both academic and industrial settings.
 
 
 \section{Conclusion}
@@ -343,7 +476,7 @@ We present SurfPro-MD, a practical open-source tool for multi-property surfactan
 
 The tool is built on a dataset of 1436 curated surfactant molecules integrating experimental and MD-derived properties, and on an ensemble of XGBoost models developed with a cluster-based evaluation protocol that provides realistic estimates of generalisation to novel compounds. Properties with strong predictive performance --- diffusion coefficients and viscosity --- are immediately suitable as quantitative screening criteria. Properties with preserved but lower rank correlation remain useful for candidate prioritisation.
 
-Future work will extend SurfPro-MD with applicability domain estimation and per-prediction SHAP attribution, enabling users to assess prediction confidence and identify the molecular features responsible for each property estimate. All data, models, and code are openly available to support reproducibility and further development.
+Applicability domain estimation and per-prediction SHAP attribution are already included, enabling users to assess prediction confidence and identify the molecular features responsible for each property estimate. All data, models, and code are openly available to support reproducibility and further development.
 
 
 \section*{Acknowledgment}

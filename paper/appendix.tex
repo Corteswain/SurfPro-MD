@@ -1,57 +1,94 @@
 % ─────────────────────────────────────────────────────────────────────
 % AIME  — Appendix / Supporting Information (appendix.tex)
 % Last updated: April 3rd, 2026
-%
-% Use this file when the SI is required as a separate document.
-% For short appendices, you can include them at the end of main.tex
-% instead (using \beginappendix).
 % ─────────────────────────────────────────────────────────────────────
 
 \documentclass[11pt]{aime}
+\usepackage{lmodern}
 
-\title{Supporting Information for:\\Your Paper Title Goes Here in Title Case}
+\title{Supporting Information for:\\A unified experimental-simulation dataset and surrogate models for surfactant property prediction}
 
-\author[1]{First Author}
-\author[1,2]{Second Author}
-\author[1]{Third Author}
-\author[1,*]{Fourth Author}
+\author[1]{Richard Beckmann}
+\author[1]{Pablo Martínez Crespo}
+\author[2]{Robert S. Jordan}
+\author[3]{Marisa Gliege}
+\author[4]{Santiago Miret}
+\author[5]{Vijay Kris Narasimhan}
+\author[1]{Rocío Mercado}
 
 \affiliation[1]{AI Laboratory for Molecular Engineering (AIME), Department of Computer Science and Engineering, Chalmers University of Technology \& University of Gothenburg, Gothenburg, Sweden}
-\affiliation[2]{Second Affiliation, City, Country}
+\affiliation[2]{Technology Research, Intel Corporation}
+\affiliation[3]{Chief Technology Office, EMD Electronics}
+\affiliation[4]{Lila Sciences}
+\affiliation[5]{Merck KGaA, Darmstadt, Germany}
 
-\contribution[*]{Corresponding author}  % Generally Rocío
+\contribution[*]{Corresponding author}
 
 \correspondence{\email{rocio.mercado@chalmers.se}}
 
 \abstract{%
-This document contains supporting information for the main manuscript.
+This document contains supporting information for the main manuscript. It provides a detailed SHAP-based feature attribution analysis across all nine target properties, characterising which RDKit molecular descriptors drive model predictions, the degree of cross-target overlap among the most important features, and how quickly SHAP importance decays as a function of feature rank.
 }
 
 \begin{document}
 \maketitle
 
-\section{Additional experiments}
-\label{app:additional}
+% =====================================================================
+% SHAP FEATURE ATTRIBUTION
+% =====================================================================
 
-% Additional experiments, ablation studies, etc.
+\section{SHAP-based feature attribution}
+\label{app:shap}
 
-\section{Hyperparameter optimization}
-\label{app:hyperparams}
+To characterise which molecular descriptors drive model predictions, we computed SHAP (SHapley Additive exPlanations) values for all nine target models using a TreeExplainer applied to the XGBoost ensembles. For each target, SHAP values were computed on the test set molecules across all five test splits and all five fold models within each split; the mean absolute SHAP value per feature was then averaged across splits.
 
-% Hyperparameter sweeps, sensitivity analyses.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{../surrogate-models/shap_per_target_ranked.png}
+    \caption{Top-15 features ranked by mean $|\text{SHAP}|$ for each of the nine target properties. Bar colours indicate cross-target sharing: dark blue --- features appearing in the top-20 of three or more targets; light blue --- two targets; grey --- target-specific. The RDKit descriptor names follow the standard RDKit nomenclature.}
+    \label{fig:shap_per_target}
+\end{figure}
 
-\section{Extended derivations}
-\label{app:derivations}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{../surrogate-models/shap_presence_matrix.png}
+    \caption{Binary presence matrix showing which RDKit features appear in the top-20 SHAP importance list for each target. Each row is one feature; each column is one target. Filled cells indicate membership in the top-20 list; the right-hand column reports the count of targets in which the feature appears.}
+    \label{fig:shap_presence}
+\end{figure}
 
-% Full proofs or derivations that are too long for the main text.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../surrogate-models/shap_feature_count_dist.png}
+    \caption{Distribution of cross-target sharing among the top-20 SHAP features. Each bar shows the number of distinct RDKit descriptors that appear in the top-20 list for exactly $k$ targets ($k = 1, \ldots, 9$). Most features are target-specific; a small subset recurs across three or more models.}
+    \label{fig:shap_count_dist}
+\end{figure}
 
-\section{Additional figures}
-\label{app:figures}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{../surrogate-models/shap_crossover_heatmap.png}
+    \caption{Heatmap of normalised mean $|\text{SHAP}|$ for features that appear in the top-20 list of at least two targets. Values within each target column are normalised so that the maximum is 1. The label suffix $\times k$ indicates the number of targets for which the feature is in the top-20. Features are sorted by the number of targets in which they appear.}
+    \label{fig:shap_heatmap}
+\end{figure}
 
-% Additional figures and tables that support but are not essential
-% to the main narrative.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../surrogate-models/shap_universal_features.png}
+    \caption{Grouped bar chart of features appearing in the top-20 SHAP list for three or more targets (``universal'' features). Each group of bars shows the normalised mean $|\text{SHAP}|$ for one feature across the targets in which it appears.}
+    \label{fig:shap_universal}
+\end{figure}
 
-\bibliographystyle{unsrtnat}
-\bibliography{references}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{../surrogate-models/shap_decay_grid.png}
+    \caption{Decay of mean $|\text{SHAP}|$ as a function of feature rank (log scale) for each of the nine targets. The shaded region marks the top-20 features. Dashed vertical lines indicate the ranks at which 50\% and 80\% of the cumulative SHAP importance is captured.}
+    \label{fig:shap_decay_grid}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../surrogate-models/shap_decay_overlay.png}
+    \caption{Overlay of normalised SHAP decay curves for all nine targets. Each curve is scaled so that its maximum equals 1. All targets show rapid importance decay, with most predictive signal concentrated in the top 20--30 features.}
+    \label{fig:shap_decay_overlay}
+\end{figure}
 
 \end{document}
