@@ -1,0 +1,462 @@
+============================================
+Job ID:    17004025
+Node:      node222
+CPUs:      20
+Started:   Mon Jun 29 16:25:40 CEST 2026
+Workdir:   /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/surrogate-models
+============================================
+Using existing environment: /proj/berzelius-2026-62/users/x_ribec/software/surf-surrogate-env
+xgboost: 2.1.4
+rdkit: ok
+optuna: 4.9.0
+
+Running surrogate_pca_models_parallel.py ...
+
+Logging to surrogate_pca_models_20260629_162554.log
+
+Parallelism: 20 CPUs → 5 parallel folds × 4 parallel Optuna trials × 1 XGBoost thread(s) = 20 total threads
+
+Loading data ...
+  1436 valid molecules
+  91 Butina clusters
+  217 RDKit features
+
+Skipping two-stage PCA run (--global-only flag set).
+
+############################################################
+# Global PCA (95% variance) — per-target fit
+# Output: models_pca.pkl
+############################################################
+
+Working on pCMC
+  filter_outliers: 1234 → 1234 (-0)
+  Global PCA: 217 raw → 42 PCs (95% var)
+  NN isolation filter: 1234 → 1234 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.288  {'learning_rate': 0.15338488309883383, 'max_depth': 3, 'n_estimators': 244}
+    fold 1 R²(val)=0.608  {'learning_rate': 0.0462056215212036, 'max_depth': 4, 'n_estimators': 252}
+    fold 3 R²(val)=0.543  {'learning_rate': 0.11336537685657042, 'max_depth': 5, 'n_estimators': 295}
+    fold 0 R²(val)=0.348  {'learning_rate': 0.04938555756103833, 'max_depth': 4, 'n_estimators': 279}
+    fold 4 R²(val)=0.545  {'learning_rate': 0.04154419474436448, 'max_depth': 4, 'n_estimators': 294}
+  Ensemble R² = 0.268
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.509  {'learning_rate': 0.056526832397953135, 'max_depth': 3, 'n_estimators': 358}
+    fold 2 R²(val)=0.579  {'learning_rate': 0.14534533805428407, 'max_depth': 5, 'n_estimators': 213}
+    fold 0 R²(val)=0.225  {'learning_rate': 0.23041351753540948, 'max_depth': 6, 'n_estimators': 224}
+    fold 3 R²(val)=0.510  {'learning_rate': 0.11496248504690178, 'max_depth': 8, 'n_estimators': 251}
+    fold 4 R²(val)=0.414  {'learning_rate': 0.03356800401182884, 'max_depth': 10, 'n_estimators': 454}
+  Ensemble R² = 0.612
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.530  {'learning_rate': 0.11446398241465312, 'max_depth': 3, 'n_estimators': 197}
+    fold 2 R²(val)=0.535  {'learning_rate': 0.11064364410733799, 'max_depth': 3, 'n_estimators': 418}
+    fold 3 R²(val)=0.381  {'learning_rate': 0.2586484855592864, 'max_depth': 4, 'n_estimators': 309}
+    fold 4 R²(val)=0.648  {'learning_rate': 0.2111061167259642, 'max_depth': 6, 'n_estimators': 453}
+    fold 0 R²(val)=0.481  {'learning_rate': 0.06038211146332443, 'max_depth': 7, 'n_estimators': 263}
+  Ensemble R² = 0.327
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.566  {'learning_rate': 0.2098592827800997, 'max_depth': 3, 'n_estimators': 446}
+    fold 2 R²(val)=0.386  {'learning_rate': 0.10595158386633155, 'max_depth': 5, 'n_estimators': 308}
+    fold 4 R²(val)=0.263  {'learning_rate': 0.11302166358728372, 'max_depth': 7, 'n_estimators': 237}
+    fold 1 R²(val)=0.420  {'learning_rate': 0.027515359361665673, 'max_depth': 3, 'n_estimators': 268}
+    fold 3 R²(val)=0.402  {'learning_rate': 0.01467670985718621, 'max_depth': 7, 'n_estimators': 475}
+  Ensemble R² = 0.634
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.560  {'learning_rate': 0.13894729595892413, 'max_depth': 4, 'n_estimators': 312}
+    fold 0 R²(val)=0.450  {'learning_rate': 0.029710866633174963, 'max_depth': 3, 'n_estimators': 449}
+    fold 1 R²(val)=0.332  {'learning_rate': 0.02103675796057399, 'max_depth': 3, 'n_estimators': 147}
+    fold 3 R²(val)=0.610  {'learning_rate': 0.2738209138934905, 'max_depth': 3, 'n_estimators': 331}
+    fold 4 R²(val)=0.606  {'learning_rate': 0.10880748547714734, 'max_depth': 3, 'n_estimators': 390}
+  Ensemble R² = 0.515
+  Checkpoint saved → models_pca.pkl
+
+Working on AW_ST_CMC
+  filter_outliers: 860 → 836 (-24)
+  Global PCA: 217 raw → 40 PCs (95% var)
+  NN isolation filter: 836 → 836 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.301  {'learning_rate': 0.01006973775771778, 'max_depth': 4, 'n_estimators': 221}
+    fold 1 R²(val)=0.227  {'learning_rate': 0.24515560864548785, 'max_depth': 3, 'n_estimators': 376}
+    fold 4 R²(val)=0.535  {'learning_rate': 0.19912963170903974, 'max_depth': 8, 'n_estimators': 418}
+    fold 0 R²(val)=0.514  {'learning_rate': 0.08779680010513226, 'max_depth': 6, 'n_estimators': 277}
+    fold 2 R²(val)=0.229  {'learning_rate': 0.025195049034100827, 'max_depth': 10, 'n_estimators': 442}
+  Ensemble R² = 0.102
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.431  {'learning_rate': 0.020039351221482385, 'max_depth': 3, 'n_estimators': 343}
+    fold 0 R²(val)=0.408  {'learning_rate': 0.2848974274466039, 'max_depth': 5, 'n_estimators': 175}
+    fold 1 R²(val)=0.313  {'learning_rate': 0.1632636309378446, 'max_depth': 5, 'n_estimators': 304}
+    fold 3 R²(val)=0.255  {'learning_rate': 0.02644786380627785, 'max_depth': 3, 'n_estimators': 294}
+    fold 2 R²(val)=0.208  {'learning_rate': 0.09326811596049131, 'max_depth': 8, 'n_estimators': 361}
+  Ensemble R² = 0.042
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.053  {'learning_rate': 0.014150897092860529, 'max_depth': 5, 'n_estimators': 153}
+    fold 0 R²(val)=0.559  {'learning_rate': 0.1908328647494962, 'max_depth': 9, 'n_estimators': 488}
+    fold 3 R²(val)=0.531  {'learning_rate': 0.06335257264741487, 'max_depth': 6, 'n_estimators': 475}
+    fold 4 R²(val)=0.276  {'learning_rate': 0.20692532749153006, 'max_depth': 9, 'n_estimators': 403}
+    fold 2 R²(val)=0.267  {'learning_rate': 0.27052711674357405, 'max_depth': 9, 'n_estimators': 431}
+  Ensemble R² = 0.463
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.250  {'learning_rate': 0.0711475514331428, 'max_depth': 3, 'n_estimators': 157}
+    fold 0 R²(val)=0.138  {'learning_rate': 0.022672849011709746, 'max_depth': 4, 'n_estimators': 103}
+    fold 2 R²(val)=0.319  {'learning_rate': 0.06049707361661775, 'max_depth': 3, 'n_estimators': 444}
+    fold 1 R²(val)=0.258  {'learning_rate': 0.08944721423949505, 'max_depth': 6, 'n_estimators': 143}
+    fold 4 R²(val)=0.450  {'learning_rate': 0.10911496079383044, 'max_depth': 9, 'n_estimators': 307}
+  Ensemble R² = 0.197
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.144  {'learning_rate': 0.016225807575068134, 'max_depth': 3, 'n_estimators': 326}
+    fold 4 R²(val)=0.252  {'learning_rate': 0.03354666525483923, 'max_depth': 5, 'n_estimators': 295}
+    fold 1 R²(val)=0.129  {'learning_rate': 0.1541599555496095, 'max_depth': 4, 'n_estimators': 287}
+    fold 2 R²(val)=0.244  {'learning_rate': 0.014148776142171053, 'max_depth': 4, 'n_estimators': 222}
+    fold 3 R²(val)=0.402  {'learning_rate': 0.018326485358240448, 'max_depth': 8, 'n_estimators': 452}
+  Ensemble R² = 0.380
+  Checkpoint saved → models_pca.pkl
+
+Working on Gamma_max
+  filter_outliers: 592 → 584 (-8)
+  Global PCA: 217 raw → 35 PCs (95% var)
+  NN isolation filter: 584 → 584 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.084  {'learning_rate': 0.017230875536947483, 'max_depth': 3, 'n_estimators': 110}
+    fold 1 R²(val)=-0.097  {'learning_rate': 0.2890447311616696, 'max_depth': 8, 'n_estimators': 162}
+    fold 4 R²(val)=0.489  {'learning_rate': 0.013855851728786445, 'max_depth': 7, 'n_estimators': 191}
+    fold 2 R²(val)=0.047  {'learning_rate': 0.010210059679044394, 'max_depth': 6, 'n_estimators': 476}
+    fold 0 R²(val)=-0.228  {'learning_rate': 0.18326693037341543, 'max_depth': 10, 'n_estimators': 499}
+  Ensemble R² = 0.245
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=-0.304  {'learning_rate': 0.293827403946434, 'max_depth': 6, 'n_estimators': 203}
+    fold 4 R²(val)=0.163  {'learning_rate': 0.2779043866499602, 'max_depth': 10, 'n_estimators': 305}
+    fold 2 R²(val)=-0.200  {'learning_rate': 0.010288567633541322, 'max_depth': 6, 'n_estimators': 102}
+    fold 3 R²(val)=-0.017  {'learning_rate': 0.2899640724914495, 'max_depth': 8, 'n_estimators': 349}
+    fold 0 R²(val)=0.483  {'learning_rate': 0.010619494220031365, 'max_depth': 8, 'n_estimators': 224}
+  Ensemble R² = 0.463
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.314  {'learning_rate': 0.022366957704469864, 'max_depth': 3, 'n_estimators': 431}
+    fold 4 R²(val)=0.463  {'learning_rate': 0.052758143761598146, 'max_depth': 4, 'n_estimators': 340}
+    fold 3 R²(val)=0.404  {'learning_rate': 0.019252457173703743, 'max_depth': 5, 'n_estimators': 165}
+    fold 1 R²(val)=-0.016  {'learning_rate': 0.13327306915512768, 'max_depth': 6, 'n_estimators': 340}
+    fold 2 R²(val)=0.092  {'learning_rate': 0.11680825489557088, 'max_depth': 3, 'n_estimators': 101}
+  Ensemble R² = -0.239
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.171  {'learning_rate': 0.02812313853426524, 'max_depth': 3, 'n_estimators': 388}
+    fold 0 R²(val)=0.376  {'learning_rate': 0.018273644262481622, 'max_depth': 3, 'n_estimators': 458}
+    fold 4 R²(val)=0.002  {'learning_rate': 0.259857475364328, 'max_depth': 5, 'n_estimators': 125}
+    fold 2 R²(val)=0.259  {'learning_rate': 0.2613467108007931, 'max_depth': 5, 'n_estimators': 469}
+    fold 1 R²(val)=0.159  {'learning_rate': 0.013775343300912029, 'max_depth': 7, 'n_estimators': 158}
+  Ensemble R² = 0.241
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.424  {'learning_rate': 0.0455935581611631, 'max_depth': 3, 'n_estimators': 343}
+    fold 1 R²(val)=0.206  {'learning_rate': 0.2976210615569031, 'max_depth': 3, 'n_estimators': 127}
+    fold 3 R²(val)=0.067  {'learning_rate': 0.06455476799265432, 'max_depth': 4, 'n_estimators': 429}
+    fold 2 R²(val)=0.188  {'learning_rate': 0.1102833133850372, 'max_depth': 3, 'n_estimators': 392}
+    fold 0 R²(val)=-1.291  {'learning_rate': 0.010069440198169927, 'max_depth': 7, 'n_estimators': 186}
+  Ensemble R² = -0.252
+  Checkpoint saved → models_pca.pkl
+
+Working on Area_min
+  filter_outliers: 595 → 588 (-7)
+  Global PCA: 217 raw → 35 PCs (95% var)
+  NN isolation filter: 588 → 588 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.182  {'learning_rate': 0.02063660882028572, 'max_depth': 3, 'n_estimators': 390}
+    fold 0 R²(val)=-0.061  {'learning_rate': 0.010374277039950976, 'max_depth': 3, 'n_estimators': 224}
+    fold 4 R²(val)=-0.469  {'learning_rate': 0.010541908990763746, 'max_depth': 5, 'n_estimators': 101}
+    fold 2 R²(val)=0.095  {'learning_rate': 0.02464939742044264, 'max_depth': 3, 'n_estimators': 200}
+    fold 3 R²(val)=0.111  {'learning_rate': 0.013296999763116546, 'max_depth': 3, 'n_estimators': 463}
+  Ensemble R² = -0.056
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.174  {'learning_rate': 0.02648817230257027, 'max_depth': 3, 'n_estimators': 170}
+    fold 2 R²(val)=-0.100  {'learning_rate': 0.266433135108776, 'max_depth': 3, 'n_estimators': 190}
+    fold 1 R²(val)=-1.164  {'learning_rate': 0.072336568143586, 'max_depth': 3, 'n_estimators': 480}
+    fold 4 R²(val)=0.214  {'learning_rate': 0.1620206778156484, 'max_depth': 6, 'n_estimators': 445}
+    fold 3 R²(val)=0.124  {'learning_rate': 0.08152141174581347, 'max_depth': 9, 'n_estimators': 410}
+  Ensemble R² = 0.072
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.546  {'learning_rate': 0.01721997874717664, 'max_depth': 5, 'n_estimators': 254}
+    fold 1 R²(val)=-0.118  {'learning_rate': 0.081164296711126, 'max_depth': 6, 'n_estimators': 351}
+    fold 0 R²(val)=-1.261  {'learning_rate': 0.040020527919821476, 'max_depth': 3, 'n_estimators': 382}
+    fold 3 R²(val)=0.299  {'learning_rate': 0.10307637460567731, 'max_depth': 3, 'n_estimators': 418}
+    fold 2 R²(val)=-0.238  {'learning_rate': 0.0708361530586647, 'max_depth': 3, 'n_estimators': 459}
+  Ensemble R² = 0.210
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=-0.136  {'learning_rate': 0.021416938129567048, 'max_depth': 3, 'n_estimators': 304}
+    fold 1 R²(val)=0.058  {'learning_rate': 0.19851633859765827, 'max_depth': 3, 'n_estimators': 327}
+    fold 2 R²(val)=0.212  {'learning_rate': 0.09688946523389189, 'max_depth': 3, 'n_estimators': 318}
+    fold 3 R²(val)=0.011  {'learning_rate': 0.1067651883108495, 'max_depth': 10, 'n_estimators': 221}
+    fold 0 R²(val)=0.286  {'learning_rate': 0.05366481449630052, 'max_depth': 8, 'n_estimators': 314}
+  Ensemble R² = -0.741
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.521  {'learning_rate': 0.14397270461663256, 'max_depth': 3, 'n_estimators': 313}
+    fold 4 R²(val)=0.229  {'learning_rate': 0.010263031226755561, 'max_depth': 3, 'n_estimators': 320}
+    fold 3 R²(val)=0.267  {'learning_rate': 0.12142738538453017, 'max_depth': 4, 'n_estimators': 176}
+    fold 1 R²(val)=-0.166  {'learning_rate': 0.010889193244302592, 'max_depth': 3, 'n_estimators': 108}
+    fold 2 R²(val)=-0.055  {'learning_rate': 0.05314682503092865, 'max_depth': 6, 'n_estimators': 318}
+  Ensemble R² = -0.196
+  Checkpoint saved → models_pca.pkl
+
+Working on pC20
+  filter_outliers: 577 → 571 (-6)
+  Global PCA: 217 raw → 35 PCs (95% var)
+  NN isolation filter: 571 → 571 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.139  {'learning_rate': 0.03353774955733882, 'max_depth': 4, 'n_estimators': 197}
+    fold 4 R²(val)=0.211  {'learning_rate': 0.02361725043021978, 'max_depth': 4, 'n_estimators': 279}
+    fold 0 R²(val)=0.287  {'learning_rate': 0.07272835317990566, 'max_depth': 4, 'n_estimators': 296}
+    fold 2 R²(val)=0.612  {'learning_rate': 0.09443734322203065, 'max_depth': 5, 'n_estimators': 334}
+    fold 1 R²(val)=0.502  {'learning_rate': 0.13443717487372622, 'max_depth': 6, 'n_estimators': 361}
+  Ensemble R² = -0.012
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.487  {'learning_rate': 0.11089800320324257, 'max_depth': 4, 'n_estimators': 332}
+    fold 2 R²(val)=-0.022  {'learning_rate': 0.14713831894592025, 'max_depth': 8, 'n_estimators': 306}
+    fold 3 R²(val)=0.306  {'learning_rate': 0.104031162830628, 'max_depth': 5, 'n_estimators': 250}
+    fold 1 R²(val)=-0.950  {'learning_rate': 0.26544716284793346, 'max_depth': 10, 'n_estimators': 493}
+    fold 4 R²(val)=0.045  {'learning_rate': 0.010425454824621075, 'max_depth': 9, 'n_estimators': 117}
+  Ensemble R² = -0.304
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.364  {'learning_rate': 0.03895139854704594, 'max_depth': 3, 'n_estimators': 332}
+    fold 1 R²(val)=0.132  {'learning_rate': 0.26043897667453386, 'max_depth': 8, 'n_estimators': 305}
+    fold 0 R²(val)=0.077  {'learning_rate': 0.074573368210863, 'max_depth': 7, 'n_estimators': 280}
+    fold 4 R²(val)=0.336  {'learning_rate': 0.018494289830616756, 'max_depth': 8, 'n_estimators': 196}
+    fold 2 R²(val)=-0.036  {'learning_rate': 0.018710289436354076, 'max_depth': 9, 'n_estimators': 445}
+  Ensemble R² = 0.513
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.237  {'learning_rate': 0.04300816111301374, 'max_depth': 3, 'n_estimators': 249}
+    fold 4 R²(val)=0.119  {'learning_rate': 0.0222571898459265, 'max_depth': 5, 'n_estimators': 114}
+    fold 1 R²(val)=0.134  {'learning_rate': 0.08994846085579741, 'max_depth': 3, 'n_estimators': 212}
+    fold 3 R²(val)=0.362  {'learning_rate': 0.09582839876288442, 'max_depth': 3, 'n_estimators': 321}
+    fold 0 R²(val)=-0.395  {'learning_rate': 0.013231281821604875, 'max_depth': 6, 'n_estimators': 148}
+  Ensemble R² = 0.566
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.389  {'learning_rate': 0.06745711982514102, 'max_depth': 4, 'n_estimators': 375}
+    fold 3 R²(val)=-0.021  {'learning_rate': 0.1971198674351133, 'max_depth': 5, 'n_estimators': 370}
+    fold 1 R²(val)=0.583  {'learning_rate': 0.24610615955212511, 'max_depth': 5, 'n_estimators': 427}
+    fold 4 R²(val)=0.461  {'learning_rate': 0.19508350075125427, 'max_depth': 5, 'n_estimators': 238}
+    fold 2 R²(val)=0.229  {'learning_rate': 0.2504133477300681, 'max_depth': 7, 'n_estimators': 358}
+  Ensemble R² = -0.067
+  Checkpoint saved → models_pca.pkl
+
+Working on D_MOL
+  filter_outliers: 1436 → 1434 (-2)
+  Global PCA: 217 raw → 45 PCs (95% var)
+  NN isolation filter: 1434 → 1434 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.624  {'learning_rate': 0.02785760015260766, 'max_depth': 3, 'n_estimators': 378}
+    fold 2 R²(val)=0.839  {'learning_rate': 0.08703081487886315, 'max_depth': 4, 'n_estimators': 217}
+    fold 0 R²(val)=0.620  {'learning_rate': 0.060836469145950034, 'max_depth': 4, 'n_estimators': 135}
+    fold 4 R²(val)=0.788  {'learning_rate': 0.10975132863117042, 'max_depth': 3, 'n_estimators': 275}
+    fold 3 R²(val)=0.667  {'learning_rate': 0.0323486340832313, 'max_depth': 9, 'n_estimators': 342}
+  Ensemble R² = 0.324
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.671  {'learning_rate': 0.016652350605334074, 'max_depth': 3, 'n_estimators': 374}
+    fold 1 R²(val)=0.692  {'learning_rate': 0.04336434399411692, 'max_depth': 4, 'n_estimators': 413}
+    fold 0 R²(val)=0.783  {'learning_rate': 0.02480945552461647, 'max_depth': 5, 'n_estimators': 367}
+    fold 2 R²(val)=0.681  {'learning_rate': 0.03579840874271389, 'max_depth': 6, 'n_estimators': 389}
+    fold 4 R²(val)=0.573  {'learning_rate': 0.01070094320861595, 'max_depth': 8, 'n_estimators': 257}
+  Ensemble R² = 0.807
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.732  {'learning_rate': 0.2952776504173725, 'max_depth': 3, 'n_estimators': 102}
+    fold 1 R²(val)=0.777  {'learning_rate': 0.0632599745863703, 'max_depth': 3, 'n_estimators': 374}
+    fold 0 R²(val)=0.562  {'learning_rate': 0.11574670076276511, 'max_depth': 3, 'n_estimators': 149}
+    fold 4 R²(val)=0.780  {'learning_rate': 0.02506127288367342, 'max_depth': 3, 'n_estimators': 406}
+    fold 3 R²(val)=0.772  {'learning_rate': 0.04074139946569448, 'max_depth': 7, 'n_estimators': 281}
+  Ensemble R² = 0.594
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.825  {'learning_rate': 0.07836179749228063, 'max_depth': 3, 'n_estimators': 369}
+    fold 0 R²(val)=0.788  {'learning_rate': 0.16181698719641952, 'max_depth': 3, 'n_estimators': 123}
+    fold 1 R²(val)=0.764  {'learning_rate': 0.10945723498739311, 'max_depth': 3, 'n_estimators': 203}
+    fold 4 R²(val)=0.632  {'learning_rate': 0.11750772464322917, 'max_depth': 4, 'n_estimators': 456}
+    fold 3 R²(val)=0.669  {'learning_rate': 0.026418255868703777, 'max_depth': 3, 'n_estimators': 427}
+  Ensemble R² = 0.553
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.705  {'learning_rate': 0.035148299716022645, 'max_depth': 3, 'n_estimators': 445}
+    fold 4 R²(val)=0.719  {'learning_rate': 0.161820161946788, 'max_depth': 3, 'n_estimators': 219}
+    fold 0 R²(val)=0.738  {'learning_rate': 0.03236912530379068, 'max_depth': 3, 'n_estimators': 440}
+    fold 3 R²(val)=0.782  {'learning_rate': 0.07542226712335345, 'max_depth': 3, 'n_estimators': 361}
+    fold 2 R²(val)=0.761  {'learning_rate': 0.020480516099364108, 'max_depth': 6, 'n_estimators': 489}
+  Ensemble R² = 0.863
+  Checkpoint saved → models_pca.pkl
+
+Working on D_SOL
+  filter_outliers: 1436 → 1436 (-0)
+  Global PCA: 217 raw → 46 PCs (95% var)
+  NN isolation filter: 1436 → 1436 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.830  {'learning_rate': 0.010248225102153763, 'max_depth': 3, 'n_estimators': 401}
+    fold 1 R²(val)=0.904  {'learning_rate': 0.04342447128459973, 'max_depth': 4, 'n_estimators': 399}
+    fold 0 R²(val)=0.870  {'learning_rate': 0.039911028731508674, 'max_depth': 3, 'n_estimators': 499}
+    fold 4 R²(val)=0.841  {'learning_rate': 0.10384350992475275, 'max_depth': 4, 'n_estimators': 252}
+    fold 2 R²(val)=0.839  {'learning_rate': 0.10932643208238536, 'max_depth': 4, 'n_estimators': 325}
+  Ensemble R² = 0.770
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.836  {'learning_rate': 0.03818801163603882, 'max_depth': 6, 'n_estimators': 105}
+    fold 2 R²(val)=0.850  {'learning_rate': 0.19866352393403577, 'max_depth': 4, 'n_estimators': 449}
+    fold 0 R²(val)=0.877  {'learning_rate': 0.015366751659418839, 'max_depth': 3, 'n_estimators': 430}
+    fold 4 R²(val)=0.825  {'learning_rate': 0.09142644920523192, 'max_depth': 4, 'n_estimators': 450}
+    fold 3 R²(val)=0.839  {'learning_rate': 0.12092444064132694, 'max_depth': 10, 'n_estimators': 270}
+  Ensemble R² = 0.887
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.879  {'learning_rate': 0.0690105342361117, 'max_depth': 4, 'n_estimators': 348}
+    fold 2 R²(val)=0.868  {'learning_rate': 0.1801907637064176, 'max_depth': 8, 'n_estimators': 261}
+    fold 0 R²(val)=0.799  {'learning_rate': 0.07020065432167143, 'max_depth': 5, 'n_estimators': 228}
+    fold 1 R²(val)=0.915  {'learning_rate': 0.10854043718459809, 'max_depth': 10, 'n_estimators': 454}
+    fold 4 R²(val)=0.869  {'learning_rate': 0.03419706747774357, 'max_depth': 8, 'n_estimators': 214}
+  Ensemble R² = 0.818
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.890  {'learning_rate': 0.03522648561438451, 'max_depth': 5, 'n_estimators': 203}
+    fold 3 R²(val)=0.711  {'learning_rate': 0.03642312568152721, 'max_depth': 3, 'n_estimators': 449}
+    fold 4 R²(val)=0.816  {'learning_rate': 0.0775256192472346, 'max_depth': 4, 'n_estimators': 449}
+    fold 1 R²(val)=0.912  {'learning_rate': 0.045516730702264106, 'max_depth': 6, 'n_estimators': 226}
+    fold 0 R²(val)=0.768  {'learning_rate': 0.05842056335608917, 'max_depth': 4, 'n_estimators': 304}
+  Ensemble R² = 0.803
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.876  {'learning_rate': 0.0927967301118554, 'max_depth': 3, 'n_estimators': 380}
+    fold 1 R²(val)=0.713  {'learning_rate': 0.15276431251403216, 'max_depth': 5, 'n_estimators': 391}
+    fold 4 R²(val)=0.869  {'learning_rate': 0.1528968071586916, 'max_depth': 4, 'n_estimators': 249}
+    fold 0 R²(val)=0.828  {'learning_rate': 0.07390848463013269, 'max_depth': 4, 'n_estimators': 274}
+    fold 3 R²(val)=0.743  {'learning_rate': 0.2919688658133591, 'max_depth': 3, 'n_estimators': 499}
+  Ensemble R² = 0.844
+  Checkpoint saved → models_pca.pkl
+
+Working on surface_tension_avg
+  filter_outliers: 1436 → 1432 (-4)
+  Global PCA: 217 raw → 46 PCs (95% var)
+  NN isolation filter: 1432 → 1432 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.186  {'learning_rate': 0.015691451758943136, 'max_depth': 4, 'n_estimators': 415}
+    fold 1 R²(val)=0.345  {'learning_rate': 0.015804655170800274, 'max_depth': 4, 'n_estimators': 495}
+    fold 4 R²(val)=0.367  {'learning_rate': 0.013878263061117476, 'max_depth': 5, 'n_estimators': 422}
+    fold 3 R²(val)=0.371  {'learning_rate': 0.01000853428453712, 'max_depth': 4, 'n_estimators': 415}
+    fold 2 R²(val)=0.399  {'learning_rate': 0.02440169662172843, 'max_depth': 5, 'n_estimators': 258}
+  Ensemble R² = 0.342
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.377  {'learning_rate': 0.02178319369924146, 'max_depth': 3, 'n_estimators': 486}
+    fold 3 R²(val)=0.311  {'learning_rate': 0.01357855047411929, 'max_depth': 3, 'n_estimators': 485}
+    fold 0 R²(val)=0.352  {'learning_rate': 0.028619074136840377, 'max_depth': 5, 'n_estimators': 362}
+    fold 2 R²(val)=0.114  {'learning_rate': 0.08973462753549603, 'max_depth': 4, 'n_estimators': 129}
+    fold 4 R²(val)=0.278  {'learning_rate': 0.07203068787755179, 'max_depth': 8, 'n_estimators': 428}
+  Ensemble R² = 0.318
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.248  {'learning_rate': 0.011001713773675832, 'max_depth': 3, 'n_estimators': 249}
+    fold 4 R²(val)=0.304  {'learning_rate': 0.02548454420243974, 'max_depth': 3, 'n_estimators': 203}
+    fold 3 R²(val)=0.313  {'learning_rate': 0.021789413189160705, 'max_depth': 4, 'n_estimators': 377}
+    fold 0 R²(val)=0.111  {'learning_rate': 0.10494122358469248, 'max_depth': 5, 'n_estimators': 182}
+    fold 2 R²(val)=0.389  {'learning_rate': 0.014377119509367563, 'max_depth': 4, 'n_estimators': 198}
+  Ensemble R² = 0.311
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.201  {'learning_rate': 0.03752947440832329, 'max_depth': 4, 'n_estimators': 141}
+    fold 4 R²(val)=0.444  {'learning_rate': 0.05953694606331367, 'max_depth': 3, 'n_estimators': 432}
+    fold 3 R²(val)=0.127  {'learning_rate': 0.012563280727886362, 'max_depth': 4, 'n_estimators': 368}
+    fold 1 R²(val)=0.322  {'learning_rate': 0.013905797479256441, 'max_depth': 3, 'n_estimators': 214}
+    fold 2 R²(val)=0.385  {'learning_rate': 0.010040507560885292, 'max_depth': 3, 'n_estimators': 357}
+  Ensemble R² = 0.276
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.328  {'learning_rate': 0.016838994580316673, 'max_depth': 3, 'n_estimators': 322}
+    fold 1 R²(val)=0.320  {'learning_rate': 0.044226554293307394, 'max_depth': 3, 'n_estimators': 145}
+    fold 2 R²(val)=0.311  {'learning_rate': 0.01980782863180147, 'max_depth': 4, 'n_estimators': 323}
+    fold 0 R²(val)=0.264  {'learning_rate': 0.049870965047206194, 'max_depth': 4, 'n_estimators': 197}
+    fold 4 R²(val)=0.138  {'learning_rate': 0.02645927626983832, 'max_depth': 3, 'n_estimators': 234}
+  Ensemble R² = 0.360
+  Checkpoint saved → models_pca.pkl
+
+Working on viscosity
+  filter_outliers: 1436 → 1428 (-8)
+  Global PCA: 217 raw → 45 PCs (95% var)
+  NN isolation filter: 1428 → 1428 (-0)
+
+  ### TEST SPLIT 0  (running 5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.862  {'learning_rate': 0.2951595714422404, 'max_depth': 5, 'n_estimators': 195}
+    fold 0 R²(val)=0.746  {'learning_rate': 0.1873576980233452, 'max_depth': 9, 'n_estimators': 296}
+    fold 2 R²(val)=0.779  {'learning_rate': 0.2896883313932295, 'max_depth': 3, 'n_estimators': 403}
+    fold 4 R²(val)=0.708  {'learning_rate': 0.04890207372888461, 'max_depth': 7, 'n_estimators': 474}
+    fold 3 R²(val)=0.806  {'learning_rate': 0.017047108943540078, 'max_depth': 10, 'n_estimators': 201}
+  Ensemble R² = 0.659
+
+  ### TEST SPLIT 1  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.734  {'learning_rate': 0.060688783642001455, 'max_depth': 6, 'n_estimators': 203}
+    fold 4 R²(val)=0.764  {'learning_rate': 0.16221299953572316, 'max_depth': 4, 'n_estimators': 407}
+    fold 1 R²(val)=0.807  {'learning_rate': 0.14360863316717298, 'max_depth': 3, 'n_estimators': 456}
+    fold 3 R²(val)=0.695  {'learning_rate': 0.2431362988245629, 'max_depth': 3, 'n_estimators': 462}
+    fold 0 R²(val)=0.735  {'learning_rate': 0.018675651309140593, 'max_depth': 4, 'n_estimators': 385}
+  Ensemble R² = 0.865
+
+  ### TEST SPLIT 2  (running 5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.796  {'learning_rate': 0.21625384232417494, 'max_depth': 3, 'n_estimators': 224}
+    fold 0 R²(val)=0.582  {'learning_rate': 0.21114880179318601, 'max_depth': 6, 'n_estimators': 355}
+    fold 1 R²(val)=0.857  {'learning_rate': 0.2680623295545161, 'max_depth': 9, 'n_estimators': 231}
+    fold 4 R²(val)=0.877  {'learning_rate': 0.15890718651576252, 'max_depth': 9, 'n_estimators': 222}
+    fold 3 R²(val)=0.672  {'learning_rate': 0.0875701866581306, 'max_depth': 5, 'n_estimators': 292}
+  Ensemble R² = 0.726
+
+  ### TEST SPLIT 3  (running 5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.752  {'learning_rate': 0.034933247740409956, 'max_depth': 4, 'n_estimators': 238}
+    fold 3 R²(val)=0.617  {'learning_rate': 0.06795184121607369, 'max_depth': 8, 'n_estimators': 327}
+    fold 4 R²(val)=0.732  {'learning_rate': 0.071354659756546, 'max_depth': 9, 'n_estimators': 382}
+    fold 1 R²(val)=0.809  {'learning_rate': 0.08185795453900485, 'max_depth': 9, 'n_estimators': 355}
+    fold 2 R²(val)=0.729  {'learning_rate': 0.023363783558253224, 'max_depth': 10, 'n_estimators': 430}
+  Ensemble R² = 0.716
+
+  ### TEST SPLIT 4  (running 5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.565  {'learning_rate': 0.049562301916601784, 'max_depth': 3, 'n_estimators': 202}
+    fold 1 R²(val)=0.589  {'learning_rate': 0.2536377602014399, 'max_depth': 4, 'n_estimators': 114}
+    fold 2 R²(val)=0.842  {'learning_rate': 0.15446918152791758, 'max_depth': 5, 'n_estimators': 374}
+    fold 0 R²(val)=0.720  {'learning_rate': 0.07116858096943651, 'max_depth': 3, 'n_estimators': 315}
+    fold 4 R²(val)=0.760  {'learning_rate': 0.09971852071594507, 'max_depth': 9, 'n_estimators': 378}
+  Ensemble R² = 0.685
+  Checkpoint saved → models_pca.pkl
+
+============================================================
+Global PCA (95% variance) — per-target fit
+============================================================
+  pCMC                   R²=0.471±0.149  ρ=0.702±0.115
+  AW_ST_CMC              R²=0.237±0.161  ρ=0.345±0.299
+  Gamma_max              R²=0.092±0.287  ρ=0.382±0.252
+  Area_min               R²=-0.142±0.328  ρ=0.381±0.169
+  pC20                   R²=0.140±0.342  ρ=0.558±0.206
+  D_MOL                  R²=0.628±0.193  ρ=0.760±0.093
+  D_SOL                  R²=0.825±0.039  ρ=0.901±0.020
+  surface_tension_avg    R²=0.321±0.029  ρ=0.592±0.030
+  viscosity              R²=0.730±0.072  ρ=0.887±0.046
+
+All done.
+
+============================================
+Finished: Mon Jun 29 16:44:25 CEST 2026
+============================================

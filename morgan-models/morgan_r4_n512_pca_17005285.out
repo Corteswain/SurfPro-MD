@@ -1,0 +1,468 @@
+============================================
+Job:      17005285  (morgan_r4_n512_pca)
+Node:     node226
+CPUs:     20
+Started:  Mon Jun 29 20:19:01 CEST 2026
+Radius:   4
+Nbits:    512
+PCA:      1
+============================================
+xgboost: 2.1.4
+rdkit: ok
+=== Logging to /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/morgan_pca_r4_n512_20260629_201915.log ===
+
+radius=4  nbits=512  pca=True  n_trials=30
+CPUs=20  fold_jobs=5  optuna_jobs=4
+
+Loading /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/data/SurfPro-MD.csv …
+  1436 valid molecules
+Butina clustering (radius=2, 1024 bits, Tc-threshold=0.6) …
+  91 clusters
+
+Computing Morgan fingerprints (radius=4, nbits=512) …
+  Fingerprint matrix: (1436, 512)  density=0.0999
+
+############################################################
+# Training → models_morgan_pca_r4_n512.pkl
+############################################################
+
+==================================================
+Target: pCMC
+  filter_outliers(pCMC): 1234 → 1234 (-0)
+  PCA: 512 bits → 214 PCs (95% variance)
+  NN isolation (thr=50.0): 1234 → 1234 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.248  {'learning_rate': 0.053609178488469855, 'max_depth': 3, 'n_estimators': 338}
+    fold 0 R²(val)=0.289  {'learning_rate': 0.016193820876394614, 'max_depth': 5, 'n_estimators': 222}
+    fold 3 R²(val)=0.169  {'learning_rate': 0.015516178450263542, 'max_depth': 3, 'n_estimators': 473}
+    fold 2 R²(val)=0.064  {'learning_rate': 0.014503812316500228, 'max_depth': 3, 'n_estimators': 314}
+    fold 4 R²(val)=0.366  {'learning_rate': 0.055623082877968286, 'max_depth': 10, 'n_estimators': 333}
+  Ensemble R² = 0.197  ρ = 0.541
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.217  {'learning_rate': 0.10814354200356668, 'max_depth': 4, 'n_estimators': 168}
+    fold 3 R²(val)=0.146  {'learning_rate': 0.1559878504596474, 'max_depth': 9, 'n_estimators': 447}
+    fold 1 R²(val)=0.170  {'learning_rate': 0.057304023196086296, 'max_depth': 9, 'n_estimators': 372}
+    fold 4 R²(val)=0.237  {'learning_rate': 0.09244888939171289, 'max_depth': 8, 'n_estimators': 498}
+    fold 2 R²(val)=0.158  {'learning_rate': 0.0117634137757847, 'max_depth': 8, 'n_estimators': 339}
+  Ensemble R² = 0.243  ρ = 0.562
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.059  {'learning_rate': 0.012463911422260561, 'max_depth': 3, 'n_estimators': 118}
+    fold 2 R²(val)=0.011  {'learning_rate': 0.040481577412958464, 'max_depth': 5, 'n_estimators': 119}
+    fold 4 R²(val)=0.312  {'learning_rate': 0.019092636388152555, 'max_depth': 3, 'n_estimators': 392}
+    fold 1 R²(val)=0.208  {'learning_rate': 0.10957095618169198, 'max_depth': 4, 'n_estimators': 226}
+    fold 0 R²(val)=0.266  {'learning_rate': 0.10243714302080768, 'max_depth': 4, 'n_estimators': 335}
+  Ensemble R² = 0.164  ρ = 0.426
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.120  {'learning_rate': 0.05900783671210251, 'max_depth': 3, 'n_estimators': 460}
+    fold 3 R²(val)=0.204  {'learning_rate': 0.1415891011495682, 'max_depth': 3, 'n_estimators': 273}
+    fold 1 R²(val)=0.161  {'learning_rate': 0.17360363654129493, 'max_depth': 6, 'n_estimators': 286}
+    fold 4 R²(val)=-0.029  {'learning_rate': 0.020697459950798632, 'max_depth': 3, 'n_estimators': 354}
+    fold 2 R²(val)=-0.014  {'learning_rate': 0.0833276086018587, 'max_depth': 9, 'n_estimators': 156}
+  Ensemble R² = 0.237  ρ = 0.612
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.242  {'learning_rate': 0.01847695489979212, 'max_depth': 3, 'n_estimators': 431}
+    fold 3 R²(val)=0.344  {'learning_rate': 0.189209736378793, 'max_depth': 5, 'n_estimators': 384}
+    fold 2 R²(val)=0.336  {'learning_rate': 0.08454179520518951, 'max_depth': 3, 'n_estimators': 108}
+    fold 0 R²(val)=0.177  {'learning_rate': 0.03959983625801842, 'max_depth': 3, 'n_estimators': 298}
+    fold 1 R²(val)=0.156  {'learning_rate': 0.010514615541190656, 'max_depth': 6, 'n_estimators': 290}
+  Ensemble R² = 0.262  ρ = 0.625
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+==================================================
+Target: AW_ST_CMC
+  filter_outliers(AW_ST_CMC): 860 → 836 (-24)
+  PCA: 512 bits → 172 PCs (95% variance)
+  NN isolation (thr=50.0): 836 → 836 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.233  {'learning_rate': 0.14423296387126608, 'max_depth': 4, 'n_estimators': 422}
+    fold 0 R²(val)=-0.107  {'learning_rate': 0.1304153027997433, 'max_depth': 5, 'n_estimators': 256}
+    fold 3 R²(val)=0.233  {'learning_rate': 0.03234578868246252, 'max_depth': 5, 'n_estimators': 243}
+    fold 2 R²(val)=0.012  {'learning_rate': 0.011337341058932415, 'max_depth': 3, 'n_estimators': 496}
+    fold 1 R²(val)=0.078  {'learning_rate': 0.08850045830717788, 'max_depth': 8, 'n_estimators': 166}
+  Ensemble R² = -0.122  ρ = 0.144
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=-0.111  {'learning_rate': 0.013415681874517901, 'max_depth': 4, 'n_estimators': 100}
+    fold 4 R²(val)=0.309  {'learning_rate': 0.1788164549271401, 'max_depth': 3, 'n_estimators': 490}
+    fold 1 R²(val)=0.060  {'learning_rate': 0.07321516570647887, 'max_depth': 4, 'n_estimators': 215}
+    fold 3 R²(val)=0.166  {'learning_rate': 0.028367071920154228, 'max_depth': 4, 'n_estimators': 353}
+    fold 0 R²(val)=0.263  {'learning_rate': 0.030743594122379474, 'max_depth': 7, 'n_estimators': 466}
+  Ensemble R² = 0.095  ρ = 0.238
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.140  {'learning_rate': 0.02489176740338173, 'max_depth': 4, 'n_estimators': 159}
+    fold 2 R²(val)=0.127  {'learning_rate': 0.05717907873111471, 'max_depth': 3, 'n_estimators': 400}
+    fold 3 R²(val)=0.131  {'learning_rate': 0.013509798393913431, 'max_depth': 3, 'n_estimators': 493}
+    fold 1 R²(val)=-0.022  {'learning_rate': 0.12081096083207192, 'max_depth': 8, 'n_estimators': 487}
+    fold 0 R²(val)=0.199  {'learning_rate': 0.019869606160080804, 'max_depth': 7, 'n_estimators': 409}
+  Ensemble R² = 0.118  ρ = 0.411
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=-0.110  {'learning_rate': 0.010730753517824754, 'max_depth': 3, 'n_estimators': 380}
+    fold 4 R²(val)=-0.166  {'learning_rate': 0.036271293036994924, 'max_depth': 5, 'n_estimators': 115}
+    fold 1 R²(val)=0.133  {'learning_rate': 0.012411965303146262, 'max_depth': 4, 'n_estimators': 406}
+    fold 2 R²(val)=0.180  {'learning_rate': 0.2522858302111893, 'max_depth': 9, 'n_estimators': 261}
+    fold 0 R²(val)=0.211  {'learning_rate': 0.04744412557831824, 'max_depth': 7, 'n_estimators': 474}
+  Ensemble R² = 0.198  ρ = 0.404
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.181  {'learning_rate': 0.0257124455265603, 'max_depth': 3, 'n_estimators': 163}
+    fold 3 R²(val)=0.257  {'learning_rate': 0.018791194620052045, 'max_depth': 5, 'n_estimators': 155}
+    fold 0 R²(val)=0.048  {'learning_rate': 0.16711352634181328, 'max_depth': 7, 'n_estimators': 358}
+    fold 1 R²(val)=0.018  {'learning_rate': 0.05503884836377684, 'max_depth': 7, 'n_estimators': 115}
+    fold 4 R²(val)=0.239  {'learning_rate': 0.06850994063032621, 'max_depth': 6, 'n_estimators': 266}
+  Ensemble R² = 0.055  ρ = 0.323
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+==================================================
+Target: Gamma_max
+  filter_outliers(Gamma_max): 592 → 584 (-8)
+  PCA: 512 bits → 139 PCs (95% variance)
+  NN isolation (thr=50.0): 584 → 584 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.014  {'learning_rate': 0.023814457852900078, 'max_depth': 3, 'n_estimators': 289}
+    fold 1 R²(val)=0.148  {'learning_rate': 0.022951146475115293, 'max_depth': 3, 'n_estimators': 221}
+    fold 3 R²(val)=0.147  {'learning_rate': 0.0346613122536509, 'max_depth': 3, 'n_estimators': 477}
+    fold 2 R²(val)=-0.270  {'learning_rate': 0.29428769142703787, 'max_depth': 3, 'n_estimators': 410}
+    fold 0 R²(val)=0.081  {'learning_rate': 0.13130569865151814, 'max_depth': 3, 'n_estimators': 437}
+  Ensemble R² = -0.248  ρ = -0.126
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.064  {'learning_rate': 0.09748563783805085, 'max_depth': 3, 'n_estimators': 222}
+    fold 0 R²(val)=0.030  {'learning_rate': 0.09011725060031632, 'max_depth': 3, 'n_estimators': 282}
+    fold 2 R²(val)=-0.246  {'learning_rate': 0.04063118274352763, 'max_depth': 3, 'n_estimators': 166}
+    fold 1 R²(val)=-0.723  {'learning_rate': 0.12710049063124157, 'max_depth': 4, 'n_estimators': 351}
+    fold 4 R²(val)=0.179  {'learning_rate': 0.18034435144199887, 'max_depth': 9, 'n_estimators': 369}
+  Ensemble R² = 0.185  ρ = 0.842
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=-0.150  {'learning_rate': 0.07481147014994542, 'max_depth': 5, 'n_estimators': 246}
+    fold 4 R²(val)=0.154  {'learning_rate': 0.08838168884432968, 'max_depth': 4, 'n_estimators': 173}
+    fold 2 R²(val)=-0.152  {'learning_rate': 0.015580276034767035, 'max_depth': 3, 'n_estimators': 155}
+    fold 1 R²(val)=-0.180  {'learning_rate': 0.010299068332273852, 'max_depth': 6, 'n_estimators': 165}
+    fold 3 R²(val)=0.444  {'learning_rate': 0.17045990677018494, 'max_depth': 9, 'n_estimators': 438}
+  Ensemble R² = 0.028  ρ = 0.244
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.040  {'learning_rate': 0.02923661215887502, 'max_depth': 3, 'n_estimators': 176}
+    fold 2 R²(val)=0.170  {'learning_rate': 0.028640376917196397, 'max_depth': 3, 'n_estimators': 437}
+    fold 0 R²(val)=0.188  {'learning_rate': 0.10218663961088013, 'max_depth': 3, 'n_estimators': 386}
+    fold 3 R²(val)=0.246  {'learning_rate': 0.20839481055399092, 'max_depth': 5, 'n_estimators': 303}
+    fold 4 R²(val)=-0.347  {'learning_rate': 0.08048584222132148, 'max_depth': 3, 'n_estimators': 410}
+  Ensemble R² = -0.209  ρ = 0.237
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.137  {'learning_rate': 0.18576876564834177, 'max_depth': 4, 'n_estimators': 401}
+    fold 4 R²(val)=0.222  {'learning_rate': 0.2142342385556532, 'max_depth': 3, 'n_estimators': 160}
+    fold 0 R²(val)=-2.834  {'learning_rate': 0.11209524065319139, 'max_depth': 3, 'n_estimators': 283}
+    fold 1 R²(val)=-0.157  {'learning_rate': 0.014597749756285028, 'max_depth': 4, 'n_estimators': 273}
+    fold 3 R²(val)=-0.069  {'learning_rate': 0.05928211285435246, 'max_depth': 3, 'n_estimators': 280}
+  Ensemble R² = -0.453  ρ = -0.230
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+==================================================
+Target: Area_min
+  filter_outliers(Area_min): 595 → 588 (-7)
+  PCA: 512 bits → 141 PCs (95% variance)
+  NN isolation (thr=50.0): 588 → 588 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=-0.349  {'learning_rate': 0.019330892960145514, 'max_depth': 4, 'n_estimators': 116}
+    fold 3 R²(val)=0.090  {'learning_rate': 0.056791597025533706, 'max_depth': 3, 'n_estimators': 313}
+    fold 1 R²(val)=-0.084  {'learning_rate': 0.04707032821018771, 'max_depth': 3, 'n_estimators': 398}
+    fold 2 R²(val)=-0.268  {'learning_rate': 0.031062919708073972, 'max_depth': 3, 'n_estimators': 291}
+    fold 0 R²(val)=-0.088  {'learning_rate': 0.08107437898169176, 'max_depth': 10, 'n_estimators': 106}
+  Ensemble R² = 0.012  ρ = 0.169
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=-0.419  {'learning_rate': 0.08520124541521185, 'max_depth': 3, 'n_estimators': 106}
+    fold 3 R²(val)=-0.090  {'learning_rate': 0.01955983914895962, 'max_depth': 3, 'n_estimators': 494}
+    fold 4 R²(val)=-0.083  {'learning_rate': 0.21424455718379953, 'max_depth': 4, 'n_estimators': 423}
+    fold 0 R²(val)=0.191  {'learning_rate': 0.10647811249903547, 'max_depth': 4, 'n_estimators': 223}
+    fold 1 R²(val)=-0.190  {'learning_rate': 0.1929333160147132, 'max_depth': 7, 'n_estimators': 275}
+  Ensemble R² = 0.125  ρ = 0.390
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=-0.346  {'learning_rate': 0.0467621807800796, 'max_depth': 3, 'n_estimators': 337}
+    fold 1 R²(val)=-0.155  {'learning_rate': 0.05132666767148062, 'max_depth': 3, 'n_estimators': 471}
+    fold 0 R²(val)=-9.730  {'learning_rate': 0.16571428998703333, 'max_depth': 4, 'n_estimators': 436}
+    fold 3 R²(val)=0.001  {'learning_rate': 0.04046945192888956, 'max_depth': 5, 'n_estimators': 226}
+    fold 2 R²(val)=-0.552  {'learning_rate': 0.0723040367774003, 'max_depth': 9, 'n_estimators': 446}
+  Ensemble R² = 0.032  ρ = 0.305
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=-1.087  {'learning_rate': 0.010170047473014412, 'max_depth': 3, 'n_estimators': 101}
+    fold 2 R²(val)=-0.038  {'learning_rate': 0.296999860151971, 'max_depth': 3, 'n_estimators': 157}
+    fold 1 R²(val)=-0.279  {'learning_rate': 0.053084115745199695, 'max_depth': 3, 'n_estimators': 331}
+    fold 4 R²(val)=-0.355  {'learning_rate': 0.010970756581153504, 'max_depth': 5, 'n_estimators': 101}
+    fold 0 R²(val)=-0.225  {'learning_rate': 0.28530585858339874, 'max_depth': 10, 'n_estimators': 478}
+  Ensemble R² = -1.378  ρ = 0.267
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=-0.171  {'learning_rate': 0.18776312930449543, 'max_depth': 3, 'n_estimators': 103}
+    fold 2 R²(val)=-0.095  {'learning_rate': 0.0399114085007913, 'max_depth': 3, 'n_estimators': 176}
+    fold 1 R²(val)=-0.314  {'learning_rate': 0.01035669430736924, 'max_depth': 4, 'n_estimators': 325}
+    fold 0 R²(val)=0.342  {'learning_rate': 0.1228896811905821, 'max_depth': 6, 'n_estimators': 414}
+    fold 3 R²(val)=0.229  {'learning_rate': 0.035220129254061726, 'max_depth': 6, 'n_estimators': 499}
+  Ensemble R² = -0.080  ρ = 0.072
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+==================================================
+Target: pC20
+  filter_outliers(pC20): 577 → 571 (-6)
+  PCA: 512 bits → 136 PCs (95% variance)
+  NN isolation (thr=50.0): 571 → 571 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.345  {'learning_rate': 0.29213446033888285, 'max_depth': 10, 'n_estimators': 223}
+    fold 2 R²(val)=0.372  {'learning_rate': 0.044970588309215756, 'max_depth': 3, 'n_estimators': 462}
+    fold 0 R²(val)=0.096  {'learning_rate': 0.011391968853373272, 'max_depth': 3, 'n_estimators': 439}
+    fold 3 R²(val)=0.075  {'learning_rate': 0.014801761101753663, 'max_depth': 8, 'n_estimators': 329}
+    fold 4 R²(val)=0.224  {'learning_rate': 0.02048274043652347, 'max_depth': 10, 'n_estimators': 168}
+  Ensemble R² = -0.456  ρ = 0.195
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.199  {'learning_rate': 0.08789152745392557, 'max_depth': 5, 'n_estimators': 207}
+    fold 2 R²(val)=-0.116  {'learning_rate': 0.2073622067332066, 'max_depth': 3, 'n_estimators': 199}
+    fold 1 R²(val)=0.078  {'learning_rate': 0.06460525220320945, 'max_depth': 4, 'n_estimators': 309}
+    fold 4 R²(val)=0.136  {'learning_rate': 0.06591061650094425, 'max_depth': 8, 'n_estimators': 264}
+    fold 3 R²(val)=0.131  {'learning_rate': 0.06151120616381866, 'max_depth': 8, 'n_estimators': 343}
+  Ensemble R² = -0.326  ρ = 0.484
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=-0.312  {'learning_rate': 0.01014275148310204, 'max_depth': 6, 'n_estimators': 103}
+    fold 3 R²(val)=0.123  {'learning_rate': 0.0745190061427887, 'max_depth': 5, 'n_estimators': 495}
+    fold 4 R²(val)=-0.049  {'learning_rate': 0.1479840160358419, 'max_depth': 7, 'n_estimators': 117}
+    fold 0 R²(val)=0.119  {'learning_rate': 0.0697167121895611, 'max_depth': 5, 'n_estimators': 253}
+    fold 2 R²(val)=0.332  {'learning_rate': 0.020437566583288328, 'max_depth': 10, 'n_estimators': 343}
+  Ensemble R² = 0.362  ρ = 0.743
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.123  {'learning_rate': 0.28598857786492077, 'max_depth': 5, 'n_estimators': 428}
+    fold 3 R²(val)=0.136  {'learning_rate': 0.01908093656098845, 'max_depth': 3, 'n_estimators': 336}
+    fold 2 R²(val)=-0.227  {'learning_rate': 0.2726514863601079, 'max_depth': 4, 'n_estimators': 443}
+    fold 4 R²(val)=0.270  {'learning_rate': 0.09811385627513546, 'max_depth': 6, 'n_estimators': 258}
+    fold 0 R²(val)=-0.255  {'learning_rate': 0.09021609246581641, 'max_depth': 10, 'n_estimators': 128}
+  Ensemble R² = 0.465  ρ = 0.757
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=-0.047  {'learning_rate': 0.0405459105479115, 'max_depth': 4, 'n_estimators': 104}
+    fold 2 R²(val)=0.217  {'learning_rate': 0.023159265870448784, 'max_depth': 3, 'n_estimators': 328}
+    fold 0 R²(val)=0.058  {'learning_rate': 0.04376217032507545, 'max_depth': 4, 'n_estimators': 271}
+    fold 4 R²(val)=0.278  {'learning_rate': 0.011343128097842615, 'max_depth': 8, 'n_estimators': 220}
+    fold 1 R²(val)=0.514  {'learning_rate': 0.010350668996228161, 'max_depth': 10, 'n_estimators': 416}
+  Ensemble R² = -0.180  ρ = 0.162
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+==================================================
+Target: D_MOL
+  filter_outliers(D_MOL): 1436 → 1434 (-2)
+  PCA: 512 bits → 231 PCs (95% variance)
+  NN isolation (thr=50.0): 1434 → 1434 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.219  {'learning_rate': 0.1218090271107831, 'max_depth': 7, 'n_estimators': 335}
+    fold 1 R²(val)=-0.077  {'learning_rate': 0.013619027888396522, 'max_depth': 3, 'n_estimators': 253}
+    fold 4 R²(val)=0.273  {'learning_rate': 0.038258412622960744, 'max_depth': 6, 'n_estimators': 167}
+    fold 3 R²(val)=-0.146  {'learning_rate': 0.014277778488201625, 'max_depth': 6, 'n_estimators': 161}
+    fold 2 R²(val)=0.445  {'learning_rate': 0.017616692510475995, 'max_depth': 6, 'n_estimators': 406}
+  Ensemble R² = -0.615  ρ = 0.075
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.252  {'learning_rate': 0.17159487650527463, 'max_depth': 3, 'n_estimators': 465}
+    fold 0 R²(val)=0.542  {'learning_rate': 0.26972029958959165, 'max_depth': 4, 'n_estimators': 185}
+    fold 3 R²(val)=0.198  {'learning_rate': 0.19049312787834838, 'max_depth': 9, 'n_estimators': 148}
+    fold 4 R²(val)=0.110  {'learning_rate': 0.03830533447241474, 'max_depth': 6, 'n_estimators': 332}
+    fold 1 R²(val)=0.585  {'learning_rate': 0.10196811516525484, 'max_depth': 6, 'n_estimators': 304}
+  Ensemble R² = 0.236  ρ = 0.330
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.335  {'learning_rate': 0.027087273311125815, 'max_depth': 4, 'n_estimators': 268}
+    fold 0 R²(val)=-0.038  {'learning_rate': 0.01541232282015565, 'max_depth': 3, 'n_estimators': 180}
+    fold 1 R²(val)=0.053  {'learning_rate': 0.03580451116947228, 'max_depth': 5, 'n_estimators': 446}
+    fold 4 R²(val)=0.437  {'learning_rate': 0.2700077359109741, 'max_depth': 7, 'n_estimators': 236}
+    fold 2 R²(val)=0.105  {'learning_rate': 0.01063348464006428, 'max_depth': 8, 'n_estimators': 154}
+  Ensemble R² = -0.026  ρ = 0.477
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.159  {'learning_rate': 0.06659321092996473, 'max_depth': 4, 'n_estimators': 167}
+    fold 2 R²(val)=0.514  {'learning_rate': 0.04943919256103686, 'max_depth': 6, 'n_estimators': 116}
+    fold 3 R²(val)=0.247  {'learning_rate': 0.0805724973305725, 'max_depth': 6, 'n_estimators': 240}
+    fold 1 R²(val)=0.368  {'learning_rate': 0.02378399956637691, 'max_depth': 7, 'n_estimators': 264}
+    fold 4 R²(val)=0.347  {'learning_rate': 0.035361800200049164, 'max_depth': 7, 'n_estimators': 448}
+  Ensemble R² = -0.303  ρ = 0.080
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.275  {'learning_rate': 0.29828749772512164, 'max_depth': 5, 'n_estimators': 423}
+    fold 4 R²(val)=0.309  {'learning_rate': 0.05125296079839934, 'max_depth': 5, 'n_estimators': 139}
+    fold 3 R²(val)=0.278  {'learning_rate': 0.23513164932951633, 'max_depth': 9, 'n_estimators': 114}
+    fold 0 R²(val)=0.209  {'learning_rate': 0.029448303836807257, 'max_depth': 3, 'n_estimators': 168}
+    fold 1 R²(val)=-0.095  {'learning_rate': 0.2801238494825539, 'max_depth': 7, 'n_estimators': 354}
+  Ensemble R² = 0.411  ρ = 0.453
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+==================================================
+Target: D_SOL
+  filter_outliers(D_SOL): 1436 → 1436 (-0)
+  PCA: 512 bits → 232 PCs (95% variance)
+  NN isolation (thr=50.0): 1436 → 1436 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.131  {'learning_rate': 0.03539133950834407, 'max_depth': 3, 'n_estimators': 297}
+    fold 3 R²(val)=0.075  {'learning_rate': 0.17457809404925265, 'max_depth': 4, 'n_estimators': 301}
+    fold 1 R²(val)=0.482  {'learning_rate': 0.10424438138409581, 'max_depth': 4, 'n_estimators': 124}
+    fold 0 R²(val)=0.119  {'learning_rate': 0.29901077521508124, 'max_depth': 6, 'n_estimators': 100}
+    fold 4 R²(val)=0.341  {'learning_rate': 0.0781189938379743, 'max_depth': 3, 'n_estimators': 310}
+  Ensemble R² = 0.428  ρ = 0.732
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.429  {'learning_rate': 0.06779215470595286, 'max_depth': 3, 'n_estimators': 351}
+    fold 0 R²(val)=0.271  {'learning_rate': 0.0570957845640878, 'max_depth': 3, 'n_estimators': 355}
+    fold 1 R²(val)=0.157  {'learning_rate': 0.14098342333119757, 'max_depth': 6, 'n_estimators': 255}
+    fold 4 R²(val)=-0.138  {'learning_rate': 0.043710343764569407, 'max_depth': 5, 'n_estimators': 447}
+    fold 2 R²(val)=0.233  {'learning_rate': 0.03755018807130687, 'max_depth': 6, 'n_estimators': 163}
+  Ensemble R² = 0.274  ρ = 0.572
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.309  {'learning_rate': 0.2879078634674285, 'max_depth': 3, 'n_estimators': 102}
+    fold 4 R²(val)=0.423  {'learning_rate': 0.10382840482420236, 'max_depth': 3, 'n_estimators': 198}
+    fold 0 R²(val)=-0.488  {'learning_rate': 0.16259951438224676, 'max_depth': 4, 'n_estimators': 289}
+    fold 3 R²(val)=0.437  {'learning_rate': 0.04254169924237619, 'max_depth': 3, 'n_estimators': 436}
+    fold 1 R²(val)=0.553  {'learning_rate': 0.0905827912248956, 'max_depth': 4, 'n_estimators': 206}
+  Ensemble R² = 0.045  ρ = 0.208
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.053  {'learning_rate': 0.19710183774070877, 'max_depth': 3, 'n_estimators': 318}
+    fold 3 R²(val)=-0.093  {'learning_rate': 0.03211073921347384, 'max_depth': 3, 'n_estimators': 486}
+    fold 0 R²(val)=0.190  {'learning_rate': 0.10542791686013112, 'max_depth': 4, 'n_estimators': 263}
+    fold 1 R²(val)=0.512  {'learning_rate': 0.0668540181339581, 'max_depth': 3, 'n_estimators': 109}
+    fold 2 R²(val)=0.498  {'learning_rate': 0.13445253817633585, 'max_depth': 6, 'n_estimators': 359}
+  Ensemble R² = 0.228  ρ = 0.557
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.259  {'learning_rate': 0.0809479369789688, 'max_depth': 3, 'n_estimators': 190}
+    fold 2 R²(val)=0.357  {'learning_rate': 0.2619821105955703, 'max_depth': 4, 'n_estimators': 170}
+    fold 4 R²(val)=0.266  {'learning_rate': 0.17345357649472198, 'max_depth': 5, 'n_estimators': 431}
+    fold 0 R²(val)=0.362  {'learning_rate': 0.021197265170095764, 'max_depth': 5, 'n_estimators': 231}
+    fold 3 R²(val)=0.285  {'learning_rate': 0.07781745851471397, 'max_depth': 5, 'n_estimators': 419}
+  Ensemble R² = 0.368  ρ = 0.759
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+==================================================
+Target: surface_tension_avg
+  filter_outliers(surface_tension_avg): 1436 → 1432 (-4)
+  PCA: 512 bits → 231 PCs (95% variance)
+  NN isolation (thr=50.0): 1432 → 1432 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=0.108  {'learning_rate': 0.09012053720291834, 'max_depth': 4, 'n_estimators': 172}
+    fold 4 R²(val)=0.109  {'learning_rate': 0.050034190031758435, 'max_depth': 3, 'n_estimators': 320}
+    fold 1 R²(val)=0.124  {'learning_rate': 0.11362531572245503, 'max_depth': 5, 'n_estimators': 384}
+    fold 0 R²(val)=-0.063  {'learning_rate': 0.11753900257629844, 'max_depth': 5, 'n_estimators': 447}
+    fold 2 R²(val)=0.106  {'learning_rate': 0.2444080817403586, 'max_depth': 4, 'n_estimators': 455}
+  Ensemble R² = 0.114  ρ = 0.326
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 0 R²(val)=0.136  {'learning_rate': 0.09088780578239644, 'max_depth': 6, 'n_estimators': 411}
+    fold 2 R²(val)=0.010  {'learning_rate': 0.051503513785966445, 'max_depth': 6, 'n_estimators': 147}
+    fold 1 R²(val)=0.042  {'learning_rate': 0.013952936618193098, 'max_depth': 8, 'n_estimators': 105}
+    fold 4 R²(val)=0.100  {'learning_rate': 0.09001833169235537, 'max_depth': 7, 'n_estimators': 304}
+    fold 3 R²(val)=0.140  {'learning_rate': 0.05029587000103274, 'max_depth': 8, 'n_estimators': 439}
+  Ensemble R² = 0.122  ρ = 0.502
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.074  {'learning_rate': 0.02764091604230179, 'max_depth': 4, 'n_estimators': 205}
+    fold 1 R²(val)=0.153  {'learning_rate': 0.12157501479837873, 'max_depth': 6, 'n_estimators': 138}
+    fold 4 R²(val)=0.193  {'learning_rate': 0.020440901274496624, 'max_depth': 4, 'n_estimators': 487}
+    fold 3 R²(val)=0.075  {'learning_rate': 0.1077780985271968, 'max_depth': 6, 'n_estimators': 241}
+    fold 0 R²(val)=-0.072  {'learning_rate': 0.03763962605916078, 'max_depth': 7, 'n_estimators': 383}
+  Ensemble R² = 0.055  ρ = 0.225
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 3 R²(val)=-0.161  {'learning_rate': 0.1514643761869668, 'max_depth': 3, 'n_estimators': 238}
+    fold 2 R²(val)=0.158  {'learning_rate': 0.06875506479778194, 'max_depth': 5, 'n_estimators': 278}
+    fold 1 R²(val)=0.193  {'learning_rate': 0.1199163106807713, 'max_depth': 6, 'n_estimators': 400}
+    fold 4 R²(val)=-0.012  {'learning_rate': 0.02914360942309348, 'max_depth': 7, 'n_estimators': 497}
+    fold 0 R²(val)=0.060  {'learning_rate': 0.010383267439244483, 'max_depth': 9, 'n_estimators': 258}
+  Ensemble R² = 0.092  ρ = 0.372
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=-0.047  {'learning_rate': 0.16982642101217066, 'max_depth': 4, 'n_estimators': 232}
+    fold 2 R²(val)=0.180  {'learning_rate': 0.11500922266522687, 'max_depth': 6, 'n_estimators': 336}
+    fold 0 R²(val)=0.158  {'learning_rate': 0.028598065264766315, 'max_depth': 5, 'n_estimators': 374}
+    fold 1 R²(val)=0.189  {'learning_rate': 0.01096132819319224, 'max_depth': 4, 'n_estimators': 444}
+    fold 3 R²(val)=0.141  {'learning_rate': 0.07933942242352247, 'max_depth': 8, 'n_estimators': 319}
+  Ensemble R² = 0.128  ρ = 0.483
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+==================================================
+Target: viscosity
+  filter_outliers(viscosity): 1436 → 1428 (-8)
+  PCA: 512 bits → 231 PCs (95% variance)
+  NN isolation (thr=50.0): 1428 → 1428 (-0)
+
+  ### TEST SPLIT 0  (5 folds × 4 Optuna trials in parallel)
+    fold 4 R²(val)=0.210  {'learning_rate': 0.041801122913963526, 'max_depth': 5, 'n_estimators': 205}
+    fold 1 R²(val)=0.333  {'learning_rate': 0.0879026198533304, 'max_depth': 4, 'n_estimators': 212}
+    fold 0 R²(val)=0.079  {'learning_rate': 0.022544775885834176, 'max_depth': 3, 'n_estimators': 214}
+    fold 2 R²(val)=0.125  {'learning_rate': 0.0797752346841734, 'max_depth': 9, 'n_estimators': 372}
+    fold 3 R²(val)=0.123  {'learning_rate': 0.019355915109026144, 'max_depth': 6, 'n_estimators': 424}
+  Ensemble R² = 0.056  ρ = 0.233
+
+  ### TEST SPLIT 1  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=-0.008  {'learning_rate': 0.0860454006727972, 'max_depth': 4, 'n_estimators': 243}
+    fold 4 R²(val)=0.139  {'learning_rate': 0.17014511742152297, 'max_depth': 3, 'n_estimators': 336}
+    fold 0 R²(val)=-0.026  {'learning_rate': 0.10114778289098263, 'max_depth': 6, 'n_estimators': 150}
+    fold 2 R²(val)=0.193  {'learning_rate': 0.26820953210034354, 'max_depth': 3, 'n_estimators': 497}
+    fold 3 R²(val)=0.146  {'learning_rate': 0.037526819007944974, 'max_depth': 7, 'n_estimators': 278}
+  Ensemble R² = 0.175  ρ = 0.615
+
+  ### TEST SPLIT 2  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.490  {'learning_rate': 0.13940842301319828, 'max_depth': 8, 'n_estimators': 251}
+    fold 2 R²(val)=0.294  {'learning_rate': 0.2987665301751509, 'max_depth': 3, 'n_estimators': 172}
+    fold 4 R²(val)=0.337  {'learning_rate': 0.28183477584489725, 'max_depth': 8, 'n_estimators': 111}
+    fold 0 R²(val)=-1.982  {'learning_rate': 0.02936506309544068, 'max_depth': 6, 'n_estimators': 200}
+    fold 3 R²(val)=0.200  {'learning_rate': 0.01883215206326771, 'max_depth': 7, 'n_estimators': 106}
+  Ensemble R² = 0.014  ρ = 0.410
+
+  ### TEST SPLIT 3  (5 folds × 4 Optuna trials in parallel)
+    fold 1 R²(val)=0.217  {'learning_rate': 0.27847667375603297, 'max_depth': 4, 'n_estimators': 320}
+    fold 4 R²(val)=-0.013  {'learning_rate': 0.014608226923764508, 'max_depth': 3, 'n_estimators': 106}
+    fold 3 R²(val)=-0.747  {'learning_rate': 0.07930521832618288, 'max_depth': 3, 'n_estimators': 496}
+    fold 0 R²(val)=0.327  {'learning_rate': 0.21964002812435418, 'max_depth': 9, 'n_estimators': 328}
+    fold 2 R²(val)=0.129  {'learning_rate': 0.011016122805170146, 'max_depth': 3, 'n_estimators': 252}
+  Ensemble R² = 0.130  ρ = 0.525
+
+  ### TEST SPLIT 4  (5 folds × 4 Optuna trials in parallel)
+    fold 2 R²(val)=0.330  {'learning_rate': 0.10495073186102893, 'max_depth': 7, 'n_estimators': 379}
+    fold 0 R²(val)=0.191  {'learning_rate': 0.19485440840947016, 'max_depth': 9, 'n_estimators': 309}
+    fold 3 R²(val)=-0.036  {'learning_rate': 0.04259131982799525, 'max_depth': 3, 'n_estimators': 368}
+    fold 4 R²(val)=0.162  {'learning_rate': 0.21017721268036707, 'max_depth': 4, 'n_estimators': 473}
+    fold 1 R²(val)=0.016  {'learning_rate': 0.0433751032370927, 'max_depth': 3, 'n_estimators': 254}
+  Ensemble R² = 0.184  ρ = 0.544
+  Checkpoint → /proj/berzelius-2026-62/users/x_ribec/surfactant-surrogates/SurfPro-MD/morgan-models/models_morgan_pca_r4_n512.pkl
+
+============================================================
+Morgan r=4 n=512 + PCA(95%)
+============================================================
+  pCMC                   R²=0.221±0.035  ρ=0.553±0.071
+  AW_ST_CMC              R²=0.069±0.106  ρ=0.304±0.102
+  Gamma_max              R²=-0.139±0.223  ρ=0.193±0.376
+  Area_min               R²=-0.258±0.564  ρ=0.241±0.110
+  pC20                   R²=-0.027±0.371  ρ=0.468±0.256
+  D_MOL                  R²=-0.059±0.368  ρ=0.283±0.175
+  D_SOL                  R²=0.269±0.132  ρ=0.566±0.196
+  surface_tension_avg    R²=0.102±0.027  ρ=0.382±0.103
+  viscosity              R²=0.112±0.067  ρ=0.465±0.134
+
+All done.
+============================================
+Finished: Mon Jun 29 21:04:20 CEST 2026
+============================================
