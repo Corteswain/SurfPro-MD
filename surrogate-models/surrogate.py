@@ -1466,6 +1466,10 @@ for i, target in enumerate(results.keys()):
     ax.text(-0.15, 1.04, alphabet[i + 1], transform=ax.transAxes,
             fontsize=14, fontweight="bold", va="bottom")
 
+    if i == 0:
+        ax.legend(fontsize=9, frameon=False, title="test split",
+                  title_fontsize=9, markerscale=1.5)
+
 fig.text(0.01, 0.99, "a", fontsize=14, fontweight="bold")
 
 plt.tight_layout()
