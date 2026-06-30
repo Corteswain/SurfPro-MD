@@ -1,0 +1,385 @@
+% ─────────────────────────────────────────────────────────────────────
+% AIME — Manuscript Template (main.tex)
+% AI Laboratory for Molecular Engineering, Chalmers University of Technology
+% Last updated: April 3rd, 2026
+%
+% CONVENTIONS:
+%   - This file should be called main.tex
+%   - SI/appendix in a separate file: appendix.tex (if needed)
+%   - References in: references.bib (same directory)
+%   - Figures in: figures/ directory (.pdf and .png versions)
+%   - Use Overleaf Labels to tag milestones: submitted, revision-1, accepted
+%   - No titles inside plots — titles go in \caption{}
+%   - Do not capitalize common nouns (graph neural network, not Graph Neural Network)
+%   - Error bars / ± values are almost always required; state what they represent
+% ─────────────────────────────────────────────────────────────────────
+
+%%%%% REVIEWER'S NOTES
+%Reviewer: 1
+
+ %Comments:
+ %This manuscript contributes a valuable dataset (SurfPro-MD) through extensive and time-consuming MD simulations for 1436 surfactant molecules. The authors' effort in systematically training nine individual models for distinct properties is commendable and ensures evaluation rigor. However, the work lacks algorithmic innovation, relying on conventional RDKit descriptors and XGBoost. To meet the high standards of this journal, the authors should benchmark their results against modern architectures (e.g., Graph Neural Networks). I recommend Major Revision; while the dataset is a significant resource, the machine learning methodology requires more novelty.
+ %Scientific comments:
+ %1.  While the dataset and evaluation protocol are rigorous, the machine learning methodology appears overly simplistic for a study aiming for high-impact publication in a journal like JCIM. The current approach relies entirely on traditional hand-crafted 2D descriptors (RDKit) and a gradient-boosted decision tree model (XGBoost). To elevate the methodological rigor beyond a basic baseline, the authors should benchmark more advanced architectures, such as Graph Neural Networks (e.g., Chemprop, AttentiveFP) or pre-trained molecular transformers (e.g., MoLFormer). Compared to fixed-length RDKit descriptors, these modern representation learning methods—potentially augmented with 3D geometric features derived from the MD simulations—are far better suited to capture the complex topological and spatial determinants of surfactant interfacial behavior, especially for targets where the current XGBoost models show limited predictive power.I see where they are coming from, but I disagree. We did try ChemProp and was outperformed by XGBoost, but I guess it would not be difficult to rerun Chemprop and MolFormer and show the comparison in an appendix. It seems silly to me to show an "ablation study" (an "ad-lation study"?) that compares against more complicated models, but we do what we must. We can address the 3D argument by highlighting that we need the model to extrapolate to unseen molecules for which 3D information is not available. We chose RDKit features because they are very easily and cheaply accessible for screening large libraries or as surrogates in generative modeling; I am sure we can make this clearer in the text.
+
+
+ %2.  Regarding MD methodology, relying solely on Open Babel's --gen3d for initial structures may be insufficient for accurate AM1-BCC charge assignment and GAFF2 parameterization, as these are highly sensitive to molecular conformation. The authors should perform a sensitivity analysis on a representative subset to determine if higher-level geometric optimizations (e.g., GFN2-xTB or DFT) significantly impact the calculated properties, such as surface tension and viscosity. This is crucial to ensure that the current simplified workflow does not introduce systematic biases into the resulting database. Hmmm... I do not think that this is really a concern, but it can be done. I can pick a few molecules, pre-optimise them with another method (I should say that the AM1-BCC charge generation contains an optimisation already, of course), and compute charges again. It is true that we did not test that. I do not think we need to run the full simulations to prove that this is the same, but we could, e.g. compute the diffusion coefficents again as these are pretty fast.
+
+ %3.  While Figure 3 demonstrates a good agreement between MD simulations and experimental data for small alcohols and carboxylic acids, the choice of these simple molecules for validation is questionable given that the study focuses on surfactants. Surfactants possess distinct structural features—such as long hydrophobic tails and diverse polar head groups—that lead to complex phenomena like micellization and specific interfacial packing, which simple alcohols like methanol or ethanol cannot represent. To strengthen the credibility of the simulation protocol, the authors should explain why surfactant-specific systems were omitted from this validation step and are strongly encouraged to include comparison data for at least a few representative surfactants (e.g., SDS or a common non-ionic surfactant) to justify the transferability of the MD parameters to the target systems.We chose these molecules because they are simple and show clear differences between the homologues. And because experimental measurements on real surfactants are hard. If we pick more complex surfactants, the homologues have similar properties whereas surfactants with clearly different results have extremely different structures. Only for those "simple" molecules do we get RELIABLE experimental measurements in which structural differences are clearly linked to differences in property. I do not know if it is enough t explain this clearly in the manuscript or if we should actually run additional simulations.
+
+ %4.  In Figure 4 (b-j), the data points are displayed in multiple colors, yet the figure lacks a legend and the caption fails to explain their significance. It remains unclear whether these colors represent different chemical clusters, data splits, or specific surfactant categories. To ensure clarity and reproducibility, the authors must explicitly define the color coding in the figure or its caption. Yep, that is on me.
+
+%Reviewer: 2
+
+ %Comments:
+ %The manuscript represents a typical study at the intersection of computational chemistry, cheminformatics, and machine learning. The authors combine experimental measurements with molecular dynamics (MD) simulations to construct an enhanced surfactant dataset (SurfPro-MD) and train XGBoost surrogate models using a rigorous clustering-based data splitting strategy. This work provides a potentially valuable data engineering framework and benchmark for predicting surfactant molecular properties and enabling high-throughput virtual screening. However, upon careful review, several critical concerns limit the suitability of this work for publication in Journal of Chemical Information and Modeling. In particular, the physical validity of the MD simulation setup and the depth of the machine learning model evaluation are insufficient. The MD-derived data labels may deviate from the true physicochemical states, and the model evaluation lacks an in-depth exploration of structure–property relationships. Therefore, this manuscript is "not recommended for publication" in its current form.Specific concerns are as follows:
+
+ %1. Methods-Dataset-Curation
+ %The authors state that "SurfPro provides up to six experimentally measured properties." In fact, in the SurfPro dataset constructed by Hödl et al., not all six target variables are experimentally measured; three of them are derived from theoretical calculations. This should be stated more rigorously.This comment really scared me because I thought I had overlooked something in the SurfPro paper, but I think what the reviewer if referring to is this passage:
+%"All surfactant properties reported in the database can be determined from experimental measurements of the relationship between surfactant concentration and air–water surface tension. The shape of this plot can be reconstructed using values for CMC, γCMC and Γmax, and all other reported properties can be derived from them."
+%I do not think I would consider this "theoretical calculations" and would therefore ignore this point?
+
+ %2. Methods-Dataset-Splitting
+ %The manuscript states: "These cutoffs were determined by visual inspection of the property distributions." This approach is overly subjective for a rigorous scientific publication. Statistical criteria should be applied to guide data cleaning and splitting.I believe that this is an acceptable way to choose cutoffs, but I will definitely rephrase this for the next version of the manuscript.
+
+% 3. MD Simulations
+% The authors simulated 150 surfactant molecules in 15,000 water molecules. Roughly calculated, this corresponds to an extremely high surfactant concentration, far exceeding the critical micelle concentration for most surfactants. At such concentrations, micelles, vesicles, or even liquid crystalline phases are likely formed. However, the manuscript does not discuss the aggregation state of the solutes when calculating diffusion coefficients and viscosity. Physically, the diffusion coefficients of monomers and micelles differ fundamentally; ignoring this distinction undermines the physical meaning of the MD-derived labels.
+% Additionally, according to the Gibbs adsorption isotherm, surface tension decreases sharply with concentration and saturates at the CMC. Once the interface is saturated, the surface tension in MD simulations should match (or correlate strongly with) experimental γCMC. However, Figure 2b reports a correlation of only 0.2, raising concerns about the validity of the MD data. 
+% While the authors use GAFF2 and AM1-BCC charges, they only validated the MD protocol with small molecules such as methanol, ethanol, and simple carboxylic acids (formic and acetic acid). These simple molecules do not represent typical surfactants with complex headgroups and long hydrophobic tails. The lack of validation against standard surfactants (e.g., SDS or CTAB) weakens confidence in the dataset.Yeah, I was afraid they would say this. The reason we chose these high concentrations in the beginning was that we wanted to see stark differences. The problem is again that we were more interested in relative comparisons than absolute values and I think that our results show pretty clearly that we get the comparisons right even when the absolute values do not agree.
+%The reason that our calculated tensions do not agree with the surface tension at CMC is that our simulation time is not nearly high enough to see real micelle formation (at least a couple of hundreds of µs) even though there is lower-level aggregation happening already happening at our time scale.
+
+%4. Surrogate Models for Surfactant Properties
+%The authors claim that their models "predict surface tension, viscosity, diffusion coefficients, and the critical micelle concentration (pCMC) directly from SMILES representations." In fact, more than these four properties are predicted, and the manuscript should clarify this.True
+
+% 5. Surrogate Model Performance
+% Model performance varies significantly across properties, but the discussion mainly describes these observations without deeper analysis. For example, the authors do not discuss why MD-derived property predictions outperform experimentally measured properties. This could relate to how RDKit features correlate with different targets and should be analyzed in more depth.
+% The structure–property relationship interpretation is also superficial; only a few key descriptors are mentioned. Inclusion of feature importance plots across different test sets would provide insight into whether important features are consistent and how they influence predictions, making the discussion more convincing.Yes, we can and should definitely do more here before re-submitting the manuscript. The better performance on MD properties is not in the least surprising to me since the experimental properties are aggregated from multiple sources whereas all MD properties are internally consistent. This needs to be described more clearly.
+%The current description of feature importance and which features are showing up in which set is really lacking because we were not able to make out any common theme among the features. It is not entirely clear to me how we will solve this (yet), but this is definitely something I should look into.
+
+
+ %6. Figures and Presentation Issues
+ %- Figure 3a: The inserted map lacks axis labels.
+ %- Figure 4: Missing legend; it is unclear what the colored points represent.
+ %I do not think that the insert in 3a needs labels as it is merely a magnification of part of the plot. The criticism of figure 4 is valid and will be changed.
+
+
+
+
+
+
+\documentclass[11pt]{aime}
+
+% ─────────────────────────────────────────────────────────────────────
+% Metadata
+% ─────────────────────────────────────────────────────────────────────
+
+\author[1]{Richard Beckmann}
+\author[1]{Pablo Martínez Crespo}
+\author[2]{Robert S. Jordan}
+\author[3]{Marisa Gliege}
+\author[4]{Santiago Miret}
+\author[5]{Vijay Kris Narasimhan}
+\author[1]{Rocío Mercado} % ORCID: 0000-0002-6170-6088
+\affiliation[1]{AI Laboratory for Molecular Engineering (AIME), Department of Computer Science and Engineering, Chalmers University of Technology \& University of Gothenburg, Gothenburg, Sweden}
+\affiliation[2]{Technology Research, Intel Corporation}
+\affiliation[3]{Chief Technology Office, EMD Electronics}
+\affiliation[4]{Lila Sciences}
+\affiliation[5]{Merck KGaA, Darmstadt, Germany}
+
+\title{A unified experimental-simulation dataset and surrogate models for surfactant property prediction}
+
+\contribution[*]{Corresponding author}  % Generally Rocío
+
+\correspondence{\email{rocio.mercado@chalmers.se}}
+\codeavailability{\url{https://github.com/ailab-bio/project-name}}
+\dataavailability{\url{https://doi.org/XX.XXXX/zenodo.XXXXXXX}}
+\date{\today}
+
+\abstract{%
+Surfactants are structurally diverse molecules whose interfacial properties are central to a wide range of industrial and scientific applications, yet their systematic evaluation remains challenging due to the cost of both wet-lab experiments and molecular simulations. In this work, we construct an extended surfactant dataset, SurfPro-MD, by combining curated experimental data from the SurfPro database with four additional molecular dynamics-derived properties, including diffusion coefficients, viscosity, and interfacial surface tension. The resulting dataset provides a unified description of 1436 surfactant systems across nine physicochemical target properties spanning both experimental and simulation-based measurements.
+Based on this dataset, we develop a suite of machine learning surrogate models that predict surfactant properties directly from SMILES representations using RDKit-derived molecular descriptors and gradient-boosted regression models. To obtain robust estimates of predictive performance, we employ a cluster-based data splitting strategy combined with multiple independent train/validation/test partitions, enabling assessment of model generalisation across chemically distinct compounds.
+The resulting models exhibit property-dependent performance, with strong predictive and ranking capability for several simulation-derived and experimental targets, while more complex interfacial properties show lower regression accuracy but still retain meaningful rank correlations. A descriptor-recurrence analysis identifies a small set of molecular features---spanning electronic surface-area distribution, functional-group composition, and global polarisability---that contribute consistently across multiple target properties, with all three appearing among the most important features for diffusion-related models, suggesting partially shared structural determinants of surfactant transport behaviour. Overall, this work provides a systematically evaluated set of predictive models, the augmented SurfPro-MD dataset, and a feature-level analysis of structure--property relationships, offering a practical resource for researchers in academia and industry seeking to screen and compare candidate surfactants without the need for additional experiments or molecular simulations. All data, simulation workflows, and trained models are made publicly available to ensure reproducibility and facilitate further development.
+}
+
+\begin{document}
+\maketitle
+
+% =====================================================================
+% INTRODUCTION
+% =====================================================================
+% ── WRITING TIP ─────────────────────────────────────────────────────
+% Write the introduction LAST — after the methods, results, and
+% discussion are drafted. Only then do you know what you are actually
+% introducing.
+% ─────────────────────────────────────────────────────────────────────
+
+\section{Introduction}
+\label{sec:introduction}
+
+Surfactants, a portmanteau of ``surface-active agents'', are chemical compounds that modulate interfacial properties between phases, including liquid–gas, liquid–liquid, and liquid–solid interfaces\cite{jia_review_2024}. Owing to their ability to alter surface tension, wetting behaviour, and aggregation phenomena, surfactants play a central role across a wide range of industrial and scientific applications. These include detergents and cleaning formulations, emulsification in food and cosmetics, enhanced oil recovery, pharmaceutical drug delivery systems, and formulation of chemicals \cite{sharma_safer_2023,chen_emerging_2024}. In all of these contexts, the performance of a surfactant depends sensitively on a combination of physicochemical properties, often under application-specific conditions.
+
+Despite their widespread use, the rational design and selection of surfactants remain challenging \cite{katritzky_qspr_2007,hu_review_2010}. Surfactants constitute a structurally diverse class of molecules, encompassing ionic, nonionic, zwitterionic, and polymeric species, with significant variability in both head group chemistry and hydrophobic moieties. This diversity leads to complex and often non-linear relationships between molecular structure and macroscopic properties such as critical micelle concentration, surface tension, and transport behaviour\cite{bera_counteracting_2018,kovalchuk_surfactant-mediated_2021}. Furthermore, experimental characterisation of these properties is often labour-intensive and system-dependent, while computational approaches such as molecular dynamics (MD) simulations, although highly informative, are computationally demanding and not readily applicable to large-scale screening\cite{qazi_dynamic_2020,chen_molecular_2025}.
+
+However, the development of reliable ML models for surfactants is hindered by the fragmented nature of available property data across experimental and computational sources. Experimental datasets are often limited in coverage and typically report only subsets of relevant physicochemical properties, while MD simulations provide complementary information but are rarely integrated into unified modelling frameworks. As a result, most existing studies focus either on experimentally derived targets or on simulation-specific observables, making it difficult to construct models that operate consistently across both domains and across chemically diverse surfactant classes \cite{thacker_can_2023,brozos_graph_2024,nnadili_surfactant-specific_2024,hodl_surfpro_2025}.
+
+In this work, we address this limitation by combining curated experimental data with systematically generated, self-consistent MD-derived labels to construct an extended dataset of surfactants. Starting from the SurfPro database \cite{hodl_surfpro_2025}, we augment the available experimental measurements with four additional properties obtained from MD simulations, namely solvent and solute diffusion coefficients, viscosity, and surface tension. This results in a dataset comprising nine target properties spanning both experimentally measured and simulation-derived quantities.
+
+Based on this combined dataset, we develop surrogate models that predict these properties directly from molecular structure encoded as SMILES strings. The overall workflow comprises dataset curation, augmentation via MD simulations, and subsequent training of machine learning models on both experimental and simulation-derived targets. To obtain reliable estimates of model performance, we employ a cluster-based data splitting strategy combined with multiple independent train/validation/test partitions, allowing us to assess model robustness with respect to chemically distinct subsets of the data.
+
+In summary, this work makes four main contributions. First, we introduce an extended surfactant dataset (hereafter referred to as SurfPro-MD) comprising 1436 curated molecules and nine physicochemical properties, including four systematically generated MD-derived quantities (diffusion coefficients of solute and solvent, viscosity, and surface tension). Second, we develop and systematically evaluate surrogate models for all nine properties, enabling rapid prediction directly from molecular structure to facilitate future molecular engineering efforts. Third, we establish a cluster-based evaluation protocol that provides a more realistic assessment of model generalisation across chemically distinct surfactants. Fourth, we analyse the recurrence of molecular descriptors across models to identify shared structural factors influencing surfactant behaviour. 
+
+Together, these components provide a unified framework for surfactant property prediction, offering a practical resource for researchers in academia and industry seeking to screen and compare candidate surfactants without requiring additional experimental measurements or computationally expensive simulations. All code, simulation workflows, and trained models are made available via a public GitHub repository https://github.com/Corteswain/SurfPro-MD 
+to ensure full reproducibility and facilitate further development.
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{figures/overview.jpg}
+    \caption{General workflow for dataset enhancement and model development.
+    (\textbf{a}) Overview of the approach. An experimental dataset is augmented with MD simulations to generate additional physicochemical properties, resulting in an MD-enhanced dataset used to train XGBoost models for all targets.
+    (\textbf{b}) MD simulation pipeline. Each surfactant is parameterised using the GAFF2 force field, followed by equilibration (NPT ensemble) and production simulations. Diffusion coefficients, viscosity, and surface tension are computed and added to the dataset.
+    (\textbf{c}) ML workflow. Repeated splitting into overlapping test sets and train/validation subsets is performed to construct an ensemble of models. Hyperparameter optimisation (HPO) is carried out on validation sets, and final performance is evaluated across the ensemble using held-out test data.}
+    \label{fig:overview}
+\end{figure}
+
+
+\section{Methods}
+
+% remove panel A
+% extract table to be separate (in LaTeX). Put it into the other table
+% remove y-labels and ticks from density plots
+\begin{figure}
+    \includegraphics[width=\textwidth]{figures/figure_data.pdf}
+    \caption{
+    (\textbf{a}) Distributions of 9 target properties before filtering, shown as normalised histograms. MD-derived properties: $D_{\mathrm{MOL}}$, $D_{\mathrm{SOL}}$, $\eta$, \& $\gamma$. Experimental SurfPro\cite{hodl_surfpro_2025} properties: pCMC, $\gamma_{\mathrm{CMC}}$, $\Gamma_{\max}$, $A_{\min}$, \& pC$_{20}$.
+    (\textbf{b}) Pearson correlation matrix of all target properties, with correlation coefficients annotated.}
+    \label{fig:data}
+\end{figure}
+
+
+\subsection{Dataset}
+
+\paragraph{Curation.}
+We base our work on the SurfPro\cite{hodl_surfpro_2025} database, a recently released curated collection of 1623 surfactant molecules covering eight structural categories: anionic, cationic, non-ionic, zwitterionic, and their gemini variants, including a sub-category of sugar-based non-ionic surfactants. For each molecule, SurfPro provides up to six experimentally measured properties: the critical micelle concentration (pCMC), surface tension at the CMC ($\gamma_{\mathrm{CMC}}$), surface pressure at the CMC ($\Pi_{\mathrm{CMC}}$), maximum surface excess concentration ($\Gamma_{\max}$), minimum molecular area at the air--water interface ($A_{\min}$), and adsorption efficiency (pC$_{20}$). Property coverage is non-uniform: only 647 of the 1623 entries have all six properties measured, and several properties are reported for fewer than half of the entries. The overall curation pipeline is shown in Figure~\ref{fig:overview}.
+
+To this experimentally-derived foundation we add four properties obtained from atomistic MD simulations performed in this work (full simulation protocol described in the next section): the solute self-diffusion coefficient ($D_{\mathrm{MOL}}$), the solvent self-diffusion coefficient ($D_{\mathrm{SOL}}$), the bulk shear viscosity ($\eta$), and the air--water surface tension ($\gamma$). In contrast to the experimental properties, these MD-derived values are computed for \textit{every} curated entry, providing complete coverage across the dataset. The combined set of nine properties (six experimental, four MD-derived; note that surface tension appears in both forms, $\gamma_{\mathrm{CMC}}$ from experiment and $\gamma$ from simulation) constitutes the SurfPro-MD dataset used throughout this work.
+
+Several quality-control filters were applied to the original SurfPro entries before MD simulation. A small number of entries (85 of 1623) contained invalid or chemically unreasonable SMILES strings and were removed, leaving 1538 entries. Salts were stripped of their counterions, and all SMILES strings were canonicalised using RDKit (version 2025.09.3) \cite{landrum2006rdkit}. Some surfactant cores were present multiple times in the original dataset under different counterions; to ensure consistency with our MD simulations, which use sodium and chloride as the only counterions, we retained a single representative entry per unique core, preferring the form most consistent with our counterion choice. Removing duplicates arising from alternative counterions yielded the final set of 1436 unique surfactant molecules used in all subsequent analyses.
+To inform property selection and identify potential redundancy, target-property distributions and pairwise Pearson correlations were computed across the curated dataset and are shown in Figure~\ref{fig:data}\textbf{a} and \textbf{b}, respectively.
+
+% \paragraph{Analysis.}
+% The distribution of values for each target property is shown in Figure~\ref{fig:data}\textbf{a}.  
+% Several properties exhibit values that lie far outside the main distribution.  
+% As it cannot be determined unambiguously whether these represent true physical outliers or experimental artefacts, these data points were treated conservatively in subsequent analysis (see below).
+% 
+% Since many surfactant-relevant properties are correlated, we analysed these relationships using the correlation matrix shown in Figure~\ref{fig:data}\textbf{b}.  
+% A near-perfect anticorrelation ($-0.99$) is observed between surface tension at the critical micelle concentration (CMC) and surface pressure at the CMC, reflecting their direct linear relationship.  
+% Additionally, all entries containing surface pressure values form a subset of those with surface tension values.  
+% Given this redundancy, surface pressure was excluded from further analysis.
+% 
+% The adsorption efficiency (pC$_{20}$) exhibits moderate correlation with pCMC and moderate anticorrelation with the solute diffusion coefficient; however, these relationships are not sufficiently strong to justify exclusion of any of these properties.
+
+
+\paragraph{Splitting.}
+
+For each of the nine target properties to be learned by the XGBoost models, a target-specific subset of the data was constructed.  
+Since not all entries contain values for all properties, each subset was filtered to include only those data points with available values for the respective target.  
+All entries contain values for the MD-derived properties (diffusion coefficients of solvent and solute, viscosity, and surface tension).
+
+For properties exhibiting extreme values, outliers were removed on a per-subset basis.  
+These cutoffs were determined by visual inspection of the property distributions (Figure~\ref{fig:data}\textbf{a}), with the aim of excluding clearly unrepresentative values while retaining as much data as possible given the limited dataset size.
+
+To obtain robust estimates of model performance, a cluster-based splitting strategy was employed.  
+Molecules were grouped into chemically similar clusters using the Butina clustering algorithm (threshold $= 0.6$) based on Tanimoto similarity. 
+This threshold was chosen to balance two competing requirements of cluster-based splitting. 
+On the one hand, sufficiently large clusters are required to construct statistically meaningful train, validation, and test sets. 
+On the other hand, clusters should be chemically distinct to ensure a realistic assessment of model generalisation. 
+The chosen threshold yields a manageable number of 91 clusters while maintaining meaningful separation between them, thereby avoiding both overly homogeneous splits and excessive fragmentation of the dataset.
+
+For each target property, 5 independent holdout test sets were constructed by assigning whole clusters to the test set until a predefined size range (7--11\% of all molecules) was reached.  
+Clusters were selected randomly, and only accepted if their inclusion resulted in a test set within this size range.
+
+For each test set, the remaining clusters were used to generate 5 independent train/validation splits using the same procedure, again enforcing a validation set size between 12\% and 18\% of all molecules.  
+This resulted in 25 distinct train/validation/test combinations per target property.
+
+This cluster-based splitting ensures that structurally similar molecules are not simultaneously present in training and test sets, thereby providing a more realistic assessment of model generalisation to novel chemical structures.
+
+
+\subsection{MD Simulations}
+\label{sec:methods:molecular_dynamics}
+
+As no 3D structures or force field parameterisations were available for the original SurfPro database, the first step in processing the data was the conversion from SMILES strings to three-dimensional molecular structures. Structure generation was performed using Open Babel 3.0.1 \cite{oboyle_open_2011} with the {\tt --gen3d} flag and default parameters, producing initial structures in Protein Data Bank (PDB) format. Hydrogen atoms were added automatically, and stereochemistry was inferred directly from the SMILES representation. No additional geometry optimisation was performed beyond the default Open Babel force-field relaxation.
+
+To enable MD simulations, all molecules were parameterised using the GAFF2 force field \cite{wang_development_2004} and AM1-BCC charges \cite{jakalian_fast_2002} via ANTECHAMBER from the AmberTools package \cite{case_ambertools_2023}. Protonation states were taken directly from the input SMILES strings, without additional pKa-based corrections. Topology files compatible with GROMACS were generated using ACPYPE \cite{sousa_da_silva_acpype_2012}. Further system preparation and all simulations were carried out using GROMACS 2024.3 \cite{lindahl_gromacs_2001,abraham_gromacs_2015}.
+
+For each system, 150 solute molecules were initially inserted into a cubic simulation box of 16\,nm per side. The system was subsequently equilibrated using extensive NPT simulations, during which the box size was reduced to its final density. This equilibration ensured physically meaningful densities prior to production simulations. After equilibration, the final systems contained 15,000 TIP4P/2005 water molecules \cite{abascal_general_2005}. Charge neutrality was enforced by adding sodium or chloride counterions as required.
+
+The system was energy-minimised using the steepest descent algorithm until a maximum force below 1000\,kJ\,mol$^{-1}$\,nm$^{-1}$ was reached. Temperature was controlled using a velocity-rescaling thermostat ($\tau = 0.1$\,ps), and pressure was maintained using the C-rescale barostat ($\tau = 2.0$\,ps, compressibility $4.5 \times 10^{-5}$\,bar$^{-1}$). All production simulations were performed in the NPT ensemble unless stated otherwise. All bonds involving hydrogen atoms were constrained using the LINCS algorithm \cite{hess_lincs_1997}. Short-range van der Waals interactions were truncated at 1.0\,nm, and long-range electrostatics were treated using the Particle Mesh Ewald (PME) method with a real-space cutoff of 1.0\,nm.
+
+Following equilibration, the system was propagated for 10\,ns with configurations saved every 500\,ps, yielding multiple restart points used for replica generation.
+
+From these configurations, two types of production simulations were initiated. The first consisted of non-equilibrium shear simulations for viscosity determination. Shear flow was induced using a cosine-shaped acceleration profile applied along the $x$-direction as a function of the $z$-position of each atom. The maximum acceleration was 0.02\,nm\,ps$^{-1}$. Viscosity was computed using the implementation provided in GROMACS 2024.3, following the built-in shear viscosity protocol. Each simulation was run for 10\,ns and repeated for 10 replicas per system.
+
+The second simulation type was used to compute surface tension. Starting from the same restart configurations, the simulation box was elongated in the $z$-direction to 30\,nm, creating a symmetric slab geometry consisting of a water/surfactant phase separated by two vacuum interfaces. The slab thickness was identical to the pre-expansion box length, resulting in a system-specific vacuum gap that was significantly larger than the liquid region. These simulations were equilibrated for 1\,ns followed by 10\,ns of production dynamics. Surface tension was computed using the standard pressure-tensor route. No slab-specific long-range electrostatic correction (e.g., Yeh--Berkowitz correction) was applied.
+
+For these slab simulations, the barostat was disabled to prevent artificial compression of the interface, which would otherwise relax the system back toward a cubic box geometry.
+
+These simulations yielded diffusion coefficients for solute and solvent, as well as viscosity and surface tension values for each system. Together, this data forms the extended SurfPro-MD dataset.
+
+To assess the physical validity of the simulation protocol, viscosity and surface tension were additionally computed for small-molecule systems with available experimental reference data. Viscosity calculations were performed for aqueous solutions of formic, acetic, propionic, and valeric acid. Surface tension calculations were performed for methanol, ethanol, and propanol. For each system, multiple concentrations were simulated (150, 300, 450, 1500, and 2500 solute molecules in 15,000 water molecules) to probe concentration-dependent behaviour. Experimental comparisons were made using both absolute and relative deviations of the simulated properties. The number of available experimental data points varied depending on literature availability, as these data were not generated in this work.
+
+
+\subsection{Surrogate Models for Surfactant Properties}
+\label{sec:methods:surrogate}
+
+To enable rapid estimation of surfactant properties without resorting to computationally expensive MD simulations, we developed surrogate models that predict surface tension, viscosity, diffusion coefficients, and the critical micelle concentration (pCMC) directly from SMILES representations.
+
+Gradient-boosted decision tree models were implemented using the XGBoost framework \cite{chen_xgboost_2016,boldini_practical_2023}, which is well suited for learning non-linear structure--property relationships in medium-sized chemical datasets. All models were trained using the standard squared-error regression objective. Molecular structures were encoded using the full set of 217 physicochemical descriptors computed with RDKit's molecular descriptors module (version 2025.09.3) \cite{landrum2006rdkit}, capturing a broad range of constitutional, topological, and physicochemical properties.
+
+For each target property, model evaluation was performed using the train/validation/test partitions described in the Methods. Briefly, for each property, 5 independent holdout test sets were constructed. For each test set, 5 corresponding train/validation splits were generated from the remaining data.
+
+Hyperparameter optimisation was carried out independently for each train/validation split using Bayesian optimisation with Optuna.\cite{optuna_2019} The optimised parameters included the learning rate, maximum tree depth, and number of boosting iterations (learning rate: 0.01--0.3, maximum depth: 3--10, number of estimators: 100--500), while all other XGBoost parameters were kept at their default values.
+
+For a given test set, the resulting 5 optimised models (one per train/validation split) were combined into an ensemble, and predictions on the holdout test set were obtained by averaging the individual model outputs. This procedure was repeated for all 5 test sets per target property, ensuring that reported performance metrics are not dependent on a single arbitrary split but instead reflect average performance across multiple statistically independent dataset partitions.
+
+To investigate whether any of the RDKit features are particularly important for surfactant behaviour, permutation importance was used to identify the top 10 features in each of the 5 test sets in each of the 9 targets. The importance was summed up across the 5 test sets to obtain a top 10 list for each target property. Further implementation details, including the full optimisation setup and model configuration, are provided in the accompanying GitHub repository to ensure full reproducibility.
+
+
+\section{Results}
+\label{results}
+
+\subsection{Dataset Analysis}
+\label{sec:results:dataset_analysis}
+
+The distribution of values for each target property in our SurfPro-MD augmented dataset is shown in Figure~\ref{fig:data}\textbf{a}. Several properties exhibit values that lie far outside the main distribution. Especially in the low-data regime, artefacts can severely affect model performance. As it cannot be determined unambiguously whether these represent true physical outliers or experimental artefacts, these data points were treated conservatively in the splitting and modelling stages and were removed on a per-subset basis. These cutoffs were
+determined by visual inspection of the property distributions (Figure~\ref{fig:data}\textbf{a}), with the aim of excluding unrepresentative values while retaining as much data as possible given the limited dataset size.
+
+Since many surfactant-relevant properties are physically interrelated, we examined their statistical dependence via the pairwise Pearson correlation matrix shown in Figure~\ref{fig:data}\textbf{b}. A near-perfect anticorrelation ($-0.99$) is observed between $\gamma_{\mathrm{CMC}}$ and $\Pi_{\mathrm{CMC}}$, reflecting their direct linear relationship. All entries with $\Pi_{\mathrm{CMC}}$ values are also a subset of those with $\gamma_{\mathrm{CMC}}$ values, so $\Pi_{\mathrm{CMC}}$ provides no additional information and was excluded from further analysis. The adsorption efficiency pC$_{20}$ shows moderate correlation with pCMC and moderate anticorrelation with the solute diffusion coefficient $D_{\mathrm{MOL}}$; these relationships, however, are not strong enough to justify excluding any of these properties.
+
+\subsection{Molecular Dynamics Validation}
+\label{sec:results:molecular_dynamics}
+
+To assess the reliability of the overall MD protocol—including force field assignment, system preparation, equilibration strategy, and production simulation settings—we performed additional simulations on chemically well-characterised reference systems. These systems were not part of the SurfPro database and were selected to provide independent validation of the simulation workflow.
+
+Figure~\ref{fig:MD}\textbf{a} shows the concentration-dependent shear viscosity for aqueous solutions of several small carboxylic acids. The simulations reproduce the experimentally observed trends across all systems, capturing both the increase in viscosity with concentration and the relative ordering between different solutes. For methanol and ethanol, the experimental reference lies well within the simulations' error bar, whereas the simulations of the 1-propanol solution seem to overestimate the viscosity by a small margin. The quantitative agreement of concentration-dependent trends suggests that our simulations are able to capture the physical reality of these systems.
+
+A similar trend is observed for surface tension (Figure~\ref{fig:MD}\textbf{b}). The simulations correctly reproduce the relative changes in surface tension as a function of composition and maintain the ordering between homologous systems. Small systematic deviations in magnitude are observed, which is expected given known limitations of the TIP4P/2005 water model in reproducing absolute interfacial properties. However, since the primary objective of this work is comparative screening of surfactants, preserving relative trends across chemical space is more relevant than reproducing absolute experimental values.
+
+Overall, these results indicate that the employed MD protocol provides a consistent and physically reasonable description of concentration-dependent structural and dynamical behaviour across different chemical systems. In particular, the ability to reproduce relative property changes across composition suggests that the simulation framework is suitable for generating internally consistent training data for surrogate modelling.
+
+The overall distributions of MD-derived and experimental properties are shown in Figure~\ref{fig:data}\textbf{a}. Several properties exhibit outliers that lie far outside the main distribution. These values are retained in the dataset for data splitting but excluded from model training on a per-target basis when they fall outside physically reasonable ranges. The majority of extreme viscosity values, in particular, are likely attributable to experimental uncertainty, as viscosity measurements become increasingly challenging for highly viscous systems.
+
+
+\subsection{Surrogate Model Performance}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Target} & \textbf{$R^2$ (mean ± std)} & \textbf{Spearman $\rho$ (mean ± std)} & \textbf{\# Before Cleaning} & \textbf{\# After Cleaning}  \\
+\midrule
+pCMC & 0.518 $\pm$ 0.143 & 0.731 $\pm$ 0.099 & 1395 & 1395 \\
+$\gamma_{\mathrm{CMC}}$ & 0.313 $\pm$ 0.106 & 0.506 $\pm$ 0.153 & 972 & 836  \\
+$\Gamma_{\max}$ & 0.192 $\pm$ 0.298 & 0.400 $\pm$ 0.211 & 672 & 584 \\
+$A_{\min}$ & -0.084 $\pm$ 0.347 & 0.471 $\pm$ 0.168 & 678 & 588 \\
+pC$_{20}$ & 0.176 $\pm$ 0.289 & 0.567 $\pm$ 0.153 & 657 & 571  \\
+$D_{\mathrm{MOL}}$ & 0.759 $\pm$ 0.120 & 0.867 $\pm$ 0.033 & 1436 & 1434 \\
+$D_{\mathrm{SOL}}$ & 0.920 $\pm$ 0.012 & 0.953 $\pm$ 0.009 & 1436 & 1436 \\
+$\gamma$ & 0.364 $\pm$ 0.038 & 0.627 $\pm$ 0.042 & 1436 & 1432 \\
+$\eta$ & 0.818 $\pm$ 0.044 & 0.923 $\pm$ 0.031 & 1436 & 1428 \\
+\bottomrule
+\end{tabular}
+\caption{Model performance across targets using ensemble evaluation. Metrics are reported as mean ± standard deviation across test splits. Columns 4 and 5 show the number of data points for each property before and after processing the dataset. }
+\label{tab:results:model_performance}
+\end{table}
+
+\paragraph{Overall predictive performance.}
+The performance of the surrogate models across all nine target properties is summarised in Table~\ref{tab:results:model_performance} and visualised in Figure~\ref{fig:results}\textbf{a}. Results are reported as mean and standard deviation across all independent train/validation/test partitions (see Methods), providing a robust estimate of model performance with respect to dataset partitioning. Model performance varies substantially across targets, with MD-derived properties generally easier to predict than the experimental ones; we discuss each group in turn below.
+
+\paragraph{MD-derived properties.}
+Among the MD-derived properties, the diffusion coefficients of solute and solvent are predicted with high accuracy ($R^2 = 0.759 \pm 0.120$ and $0.920 \pm 0.012$, respectively), as is viscosity ($\eta$; $R^2 = 0.818 \pm 0.044$). Surface tension ($\gamma$) is more challenging, with a lower $R^2$ of $0.364 \pm 0.038$ but a moderate rank correlation ($\rho = 0.627 \pm 0.042$), indicating that, while absolute values are harder to capture, the model still preserves meaningful ordering across chemical space. This pattern, where rank correlation remains informative even when $R^2$ is modest, recurs throughout our results and is particularly relevant for the screening use case targeted by this work, where the primary objective is to compare and prioritise candidate molecules rather than recover exact property values.
+
+
+\paragraph{Experimentally-derived properties.}
+pCMC model is the strongest in this group ($R^2 = 0.518 \pm 0.143$, $\rho = 0.731 \pm 0.099$). In contrast, $\Gamma_{\max}$, $A_{\min}$, and pC$_{20}$ exhibit lower predictive performance, with $R^2$ values ranging from slightly negative to approximately $0.18$, although moderate rank correlations are still observed in most cases. This $R^2$--$\rho$ disparity is at least partly attributable to the limited numerical resolution of these experimental properties, which contain a large number of repeated or discretised target values. Since $R^2$ is defined relative to the mean-baseline predictor, datasets with concentrated value distributions yield strong baseline performance and thus systematically low $R^2$ even when a model captures meaningful predictive signal. The higher Spearman correlations observed for these targets indicate that the models retain substantial ability to recover correct rank ordering despite the metric-level penalty.
+
+\paragraph{Feature-level analysis of structure-property relationships.}
+%TODO we need to do more thorough analysis here
+To gain insight into the molecular descriptors driving model predictions, we performed a permutation-feature-importance analysis (see Methods) and examined which descriptors appeared in the top-10 most important features across multiple target models. A small number of descriptors recur across the nine targets: one feature appears in the top-10 list of six different models, and two further features appear in five each. The three most recurrent descriptors are VSA\_EState9, which captures the distribution of molecular surface area across specific electronic environments; fr\_NH0, reflecting the presence of tertiary amine functionalities; and BCUT2D\_MRLOW, a global descriptor related to molecular polarisability and size. Despite this recurrence, the overall overlap of important features across targets remains limited, indicating that no single descriptor universally governs all surfactant properties considered here; rather, different properties depend on partially distinct aspects of molecular structure, consistent with the multifaceted nature of surfactant behaviour. Notably, all three of the most-recurrent descriptors contribute to models predicting diffusion-related properties, suggesting that they capture structural characteristics relevant for molecular mobility in solution.
+
+
+\paragraph{Comparison with prior SurfPro models and screening utility.}
+Parity plots for all nine target properties are shown in Figure~\ref{fig:results}\textbf{c}--\textbf{j}. For visual clarity, each panel corresponds to a single ensemble (one test set and its associated models) per property; because each ensemble is constructed from a different holdout test set, the displayed performance is not necessarily representative of the average performance reported in Table~\ref{tab:results:model_performance}. In particular, $A_{\min}$ and pC$_{20}$ perform better on average than their parity plots would suggest, reflecting variability between test sets rather than a systematic failure of the models. Direct numerical comparison with the SurfPro models reported by Hödl et al.\cite{hodl_surfpro_2025} is not straightforward, because random splitting in the original study can place structurally similar molecules in both training and test sets and thereby yield overly optimistic generalisation estimates. The cluster-based splitting strategy employed here provides a more stringent assessment of generalisation to novel compounds, at the cost of producing nominally lower performance metrics. Taken together, the moderate-to-high rank correlations across both MD-derived and experimental targets, combined with the consistency of these trends across independent data partitions, indicate that the SurfPro-MD surrogate models are well suited for comparative surfactant screening in both academic and industrial settings.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{figures/MD_validation.pdf}
+    \caption{Relative surface tension (\textbf{a}) and relative viscosity (\textbf{b}) as a function of composition for selected alcohols and carboxylic acids. Simulation results (solid lines with error bars) are shown as mean ± standard deviation over independent replicas, with values normalised to the corresponding pure-solvent reference. Experimental data (dashed lines) are plotted for comparison.}
+\label{fig:MD}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=0.95\textwidth]{figures/full_results.pdf}
+    \caption{
+(\textbf{a}) Ensemble ML performance across nine target properties (left), quantified by $R^2$ and Spearman $\rho$ over test splits.
+(\textbf{b}-\textbf{j}) Parity plots for all test splits in each target showing predicted versus reference values for all properties. The dashed lines indicate the identity line.
+}
+\label{fig:results}
+\end{figure}
+
+\section{Discussion}
+\label{sec:discussion}
+
+This work introduces an integrated framework for surfactant property prediction that combines experimentally reported data with systematically generated MD-derived labels. By augmenting the SurfPro dataset with four additional simulation-based properties, we construct a unified resource---which we refer to as SurfPro-MD---spanning nine physicochemical targets, enabling consistent modelling across both experimental and computational domains.
+
+A key outcome of this study is that predictive performance varies systematically with the nature of the target property. Properties associated with bulk transport, such as diffusion coefficients and viscosity, are captured reliably by structure-based descriptors, indicating that these behaviours are largely encoded at the single-molecule level. Direct experimental validation of the MD-derived properties on the surfactant systems themselves was not feasible, as systematic experimental measurements of viscosity, diffusion, and surface tension across diverse surfactant classes are largely unavailable. We therefore validated the simulation protocol on small-molecule reference systems and rely on relative trends rather than absolute accuracy for the surfactant predictions, an approach consistent with the comparative-screening use case targeted by SurfPro-MD. In contrast, interfacial and adsorption-related properties are intrinsically more difficult to predict, as they emerge from collective, many-body phenomena that are difficult to extract from molecular structure despite the full physical information being encoded in the molecular structure. This difficulty is not incidental but central to surfactant science, and is precisely what makes their computational modelling both challenging and practically important.
+
+Despite these inherent differences in learnability, the surrogate models developed in this work consistently preserve meaningful rank ordering across chemically diverse surfactants. This is particularly relevant for the intended use case of molecular screening, where the primary objective is not exact reproduction of experimental values but the reliable prioritisation of candidate molecules. The robustness of rank-based performance across multiple independent data partitions therefore supports the practical applicability of the proposed modelling framework.
+
+Beyond predictive performance, the descriptor analysis provides insight into the structural factors underlying surfactant behaviour. While a small number of molecular descriptors recur across multiple target properties, the overall overlap remains limited. This suggests that surfactant properties are governed by partially distinct aspects of molecular structure rather than a single dominant feature set. From a design perspective, this reinforces the need for multi-property optimisation strategies, where improvements in one property may not directly translate to others.
+
+
+\section{Conclusion}
+A central methodological contribution of this work is the construction of the SurfPro-MD dataset, which integrates experimental measurements with self-consistent MD-derived properties for 1436 surfactants. This extended dataset enables, for the first time within this framework, joint modelling across experimental and simulation-derived observables, providing a more unified representation of surfactant behaviour across scales.
+
+In addition, we introduce a cluster-based evaluation protocol that provides a more stringent assessment of generalisation than conventional random splitting. By enforcing chemical dissimilarity between training and test sets, this approach yields performance estimates that better reflect the expected behaviour on previously unseen surfactants, thereby improving the reliability of reported model performance.
+
+On the basis of this dataset and evaluation strategy, we develop surrogate models for nine physicochemical properties, enabling rapid prediction of surfactant behaviour directly from molecular structure. These models provide a computationally efficient alternative to both experimental measurement and molecular simulation, and are intended as practical tools for comparative surfactant screening.
+
+Taken together, this work makes four main contributions: (i) the SurfPro-MD dataset combining experimental and MD-derived properties, (ii) a cluster-based evaluation protocol for realistic performance assessment, (iii) a set of surrogate models spanning nine surfactant-relevant properties, and (iv) a descriptor-level analysis revealing shared and property-specific molecular drivers. Collectively, these components provide a coherent framework for data-driven surfactant analysis and lay the foundation for future work in computational surfactant design.
+
+
+\section*{Acknowledgment}
+RB and PMC acknowledge funding from the Intel-Merck joint university research centre for AI-Aware Pathways to Sustainable Semiconductor Process and Manufacturing Technologies (AWASES). RM acknowledges funding provided by the Wallenberg AI, Autonomous Systems, and Software Program (WASP), supported by the Knut and Alice Wallenberg Foundation. The computations and data storage were enabled by resources provided by Chalmers e-Commons and by the National Academic Infrastructure for Supercomputing in Sweden (NAISS), partially funded by the Swedish Research Council through grant agreement no. 2022-06725. The authors declare no competing interests.
+
+
+\section*{Data and Software Availability}
+All code and data are available on GitHub https://github.com/Corteswain/SurfPro-MD.
+
+
+% =====================================================================
+% REFERENCES
+% =====================================================================
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+
+% =====================================================================
+% APPENDIX (if short enough to include in main file)
+% =====================================================================
+% For longer appendices, use a separate appendix.tex file.
+% The appendix is the right place for:
+%   - Ablation studies and additional experiments
+%   - Extended derivations or proofs
+%   - Additional figures and tables
+%   - The clever analysis you spent 2 weeks on that doesn't belong
+%     in the main text --- if it doesn't help answer the core research
+%     question, it goes here (or gets deleted).
+
+% \beginappendix
+%
+% \section{Additional experiments}
+% \label{app:additional}
+%
+% \section{Hyperparameter sensitivity}
+% \label{app:hyperparams}
+
+\end{document}

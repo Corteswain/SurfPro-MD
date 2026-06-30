@@ -1,0 +1,57 @@
+% ─────────────────────────────────────────────────────────────────────
+% AIME  — Appendix / Supporting Information (appendix.tex)
+% Last updated: April 3rd, 2026
+%
+% Use this file when the SI is required as a separate document.
+% For short appendices, you can include them at the end of main.tex
+% instead (using \beginappendix).
+% ─────────────────────────────────────────────────────────────────────
+
+\documentclass[11pt]{aime}
+
+\title{Supporting Information for:\\Your Paper Title Goes Here in Title Case}
+
+\author[1]{First Author}
+\author[1,2]{Second Author}
+\author[1]{Third Author}
+\author[1,*]{Fourth Author}
+
+\affiliation[1]{AI Laboratory for Molecular Engineering (AIME), Department of Computer Science and Engineering, Chalmers University of Technology \& University of Gothenburg, Gothenburg, Sweden}
+\affiliation[2]{Second Affiliation, City, Country}
+
+\contribution[*]{Corresponding author}  % Generally Rocío
+
+\correspondence{\email{rocio.mercado@chalmers.se}}
+
+\abstract{%
+This document contains supporting information for the main manuscript.
+}
+
+\begin{document}
+\maketitle
+
+\section{Additional experiments}
+\label{app:additional}
+
+% Additional experiments, ablation studies, etc.
+
+\section{Hyperparameter optimization}
+\label{app:hyperparams}
+
+% Hyperparameter sweeps, sensitivity analyses.
+
+\section{Extended derivations}
+\label{app:derivations}
+
+% Full proofs or derivations that are too long for the main text.
+
+\section{Additional figures}
+\label{app:figures}
+
+% Additional figures and tables that support but are not essential
+% to the main narrative.
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}
