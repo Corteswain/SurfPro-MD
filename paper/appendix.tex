@@ -33,6 +33,7 @@ Section~\ref{app:ablation} reports the feature representation ablation study, co
 Section~\ref{app:feature_importance} presents the permutation feature importance analysis and the results of structure--property relationship analysis across the nine targets.
 Section~\ref{app:unc_diagnostics} provides diagnostic scatter plots for the nearest-neighbour distance and ensemble disagreement uncertainty heuristics.
 Section~\ref{app:conformal} gives a detailed analysis of the conformal calibration curves, including a discussion of the three calibration regimes and their practical implications for users.
+Section~\ref{app:split_comparison} compares model performance across three data splitting strategies --- cluster-based, random, and stratified --- to contextualise our results relative to prior work.
 }
 
 \begin{document}
@@ -264,5 +265,83 @@ More broadly, the conformal calibration curve functions as a property-specific f
 Properties for which the test clusters are genuinely more OOD than the validation folds --- those with tight in-distribution fits and under-coverage --- are precisely the ones where the cluster-based splitting protocol is most stringent.
 Properties for which the calibration curve exceeds the diagonal reflect targets where the whole chemical space is uniformly hard, and the splitting strategy does not introduce additional difficulty.
 This distinction is not visible in aggregate performance metrics such as $R^2$ or Spearman $\rho$, making the calibration analysis a complementary diagnostic that reveals structure in the difficulty of the learning problem that aggregate metrics conceal.
+
+% =====================================================================
+% SPLIT STRATEGY COMPARISON
+% =====================================================================
+
+\section{Comparison of data splitting strategies}
+\label{app:split_comparison}
+
+To enable a direct comparison with the models of Hödl et al.\cite{hodl_surfpro_2025}, who trained their surrogate models using a stratified split, we re-evaluated our XGBoost models under two additional splitting strategies: random splitting and stratified splitting, implemented to match the approach used in the original SurfPro work. In all cases the same model architecture, feature set, and hyperparameter optimisation procedure were used; only the assignment of molecules to training and test sets differs.
+
+Table~\ref{tab:split_comparison} reports MAE and RMSE (mean $\pm$ standard deviation across five independent test sets) for all nine target properties under each strategy.
+
+Under stratified and random splitting, our models achieve MAE and RMSE values comparable to those reported by Hödl et al.\cite{hodl_surfpro_2025} for the properties shared between the two studies. Any remaining differences in absolute metrics are consistent with the variance across individual test sets: both strategies are evaluated here over five independent test sets, whereas the original SurfPro models were reported on a single holdout set. A single holdout evaluation is sensitive to the particular split chosen, and favourable splits can yield metrics that do not represent average-case performance. Our multi-split evaluation provides a more stable estimate of the expected error on unseen data.
+
+The cluster-based splitting strategy --- used throughout the main manuscript --- enforces chemical dissimilarity between training and test compounds via Butina clustering, ensuring that test molecules are structurally novel relative to the training set. This leads to higher absolute errors but constitutes a more realistic assessment of generalisation to compounds outside the training distribution. We regard these numbers as the primary performance estimate for use cases involving screening of novel chemical space.
+
+\begin{table}[ht]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llcccccc}
+\toprule
+\textbf{Target} & \textbf{Units}
+  & \multicolumn{2}{c}{\textbf{Cluster split}}
+  & \multicolumn{2}{c}{\textbf{Random split}}
+  & \multicolumn{2}{c}{\textbf{Stratified split}} \\
+ & & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
+\midrule
+pCMC
+  & ---
+  & $0.605 \pm 0.121$ & $0.802 \pm 0.155$
+  & $0.314 \pm 0.056$ & $0.464 \pm 0.094$
+  & $0.298 \pm 0.024$ & $0.425 \pm 0.036$ \\
+$\gamma_{\mathrm{CMC}}$
+  & mN\,m$^{-1}$
+  & $4.289 \pm 0.396$ & $5.293 \pm 0.538$
+  & $2.750 \pm 0.306$ & $3.716 \pm 0.427$
+  & $2.572 \pm 0.128$ & $3.477 \pm 0.178$ \\
+$\Gamma_{\max}$
+  & $\mu$mol\,m$^{-2}$
+  & $0.637 \pm 0.101$ & $0.878 \pm 0.189$
+  & $0.417 \pm 0.034$ & $0.653 \pm 0.052$
+  & $0.368 \pm 0.033$ & $0.588 \pm 0.066$ \\
+$A_{\min}$
+  & nm$^{2}$
+  & $0.401 \pm 0.099$ & $0.581 \pm 0.178$
+  & $0.228 \pm 0.027$ & $0.353 \pm 0.057$
+  & $0.230 \pm 0.026$ & $0.384 \pm 0.090$ \\
+pC$_{20}$
+  & ---
+  & $0.646 \pm 0.074$ & $0.858 \pm 0.105$
+  & $0.394 \pm 0.053$ & $0.561 \pm 0.087$
+  & $0.389 \pm 0.051$ & $0.549 \pm 0.051$ \\
+$D_{\mathrm{MOL}}$
+  & $\times10^{-9}$\,m$^{2}$\,s$^{-1}$
+  & $0.027 \pm 0.006$ & $0.041 \pm 0.011$
+  & $0.023 \pm 0.001$ & $0.036 \pm 0.004$
+  & $0.022 \pm 0.001$ & $0.033 \pm 0.003$ \\
+$D_{\mathrm{SOL}}$
+  & $\times10^{-9}$\,m$^{2}$\,s$^{-1}$
+  & $0.123 \pm 0.010$ & $0.169 \pm 0.011$
+  & $0.067 \pm 0.006$ & $0.100 \pm 0.010$
+  & $0.065 \pm 0.003$ & $0.102 \pm 0.007$ \\
+$\gamma$
+  & mN\,m$^{-1}$
+  & $2.843 \pm 0.246$ & $3.796 \pm 0.291$
+  & $2.688 \pm 0.135$ & $3.587 \pm 0.186$
+  & $2.641 \pm 0.270$ & $3.431 \pm 0.343$ \\
+$\eta$
+  & mPa\,s
+  & $0.120 \pm 0.007$ & $0.162 \pm 0.020$
+  & $0.089 \pm 0.005$ & $0.123 \pm 0.008$
+  & $0.089 \pm 0.008$ & $0.126 \pm 0.018$ \\
+\bottomrule
+\end{tabular}%
+}
+\caption{MAE and RMSE (mean $\pm$ standard deviation across five independent test sets) for all nine target properties under three data splitting strategies. Cluster split: Butina-based structural clustering enforces chemical dissimilarity between train and test sets (used throughout the main manuscript). Random split: molecules assigned to train/test randomly. Stratified split: molecules assigned using the stratified procedure of Hödl et al.\cite{hodl_surfpro_2025}. All strategies use the same model architecture and hyperparameter optimisation.}
+\label{tab:split_comparison}
+\end{table}
 
 \end{document}

@@ -1,0 +1,282 @@
+\begin{thebibliography}{26}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Hödl et~al.(2025)Hödl, Hermans, Dankloff, Piruska, Huck, and
+  Robinson]{hodl_surfpro_2025}
+Stefan~L. Hödl, Luc Hermans, Pim F.~J. Dankloff, Aigars Piruska, Wilhelm T.~S.
+  Huck, and William~E. Robinson.
+\newblock {SurfPro} – a curated database and predictive model of experimental
+  properties of surfactants.
+\newblock \emph{Digital Discovery}, 4\penalty0 (5):\penalty0 1176--1187, May
+  2025.
+\newblock ISSN 2635-098X.
+\newblock \doi{10.1039/D4DD00393D}.
+\newblock URL
+  \url{https://pubs.rsc.org/en/content/articlelanding/2025/dd/d4dd00393d}.
+
+\bibitem[Jia et~al.(2024)Jia, Yang, Li, Liang, Li, Tsuji, Niu, and
+  Peng]{jia_review_2024}
+Jihui Jia, Shu Yang, Jingwei Li, Yunfeng Liang, Rongjuan Li, Takeshi Tsuji, Ben
+  Niu, and Bo~Peng.
+\newblock Review of the {Interfacial} {Structure} and {Properties} of
+  {Surfactants} in {Petroleum} {Production} and {Geological} {Storage}
+  {Systems} from a {Molecular} {Scale} {Perspective}.
+\newblock \emph{Molecules}, 29\penalty0 (13):\penalty0 3230, July 2024.
+\newblock ISSN 1420-3049.
+\newblock \doi{10.3390/molecules29133230}.
+\newblock URL \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11243718/}.
+
+\bibitem[Sharma et~al.(2023)Sharma, Shelke, Bagheri~Kashani, Morose, Christuk,
+  and Nagarajan]{sharma_safer_2023}
+Rashmi Sharma, Shreyas Shelke, Mohammad Bagheri~Kashani, Gregory Morose,
+  Christopher Christuk, and Ramaswamy Nagarajan.
+\newblock Safer and effective alternatives to perfluoroalkyl-based surfactants
+  in etching solutions for the semiconductor industry.
+\newblock \emph{Journal of Cleaner Production}, 415:\penalty0 137879, August
+  2023.
+\newblock ISSN 0959-6526.
+\newblock \doi{10.1016/j.jclepro.2023.137879}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S0959652623020371}.
+
+\bibitem[Chen et~al.(2024)Chen, Wang, Shih, Chin, and Lin]{chen_emerging_2024}
+Yi-Ju Chen, Ren-De Wang, Yu-Lin Shih, Hsiao-Yi Chin, and Angela Yu-Chen Lin.
+\newblock Emerging {Perfluorobutane} {Sulfonamido} {Derivatives} as a {New}
+  {Trend} of {Surfactants} {Used} in the {Semiconductor} {Industry}.
+\newblock \emph{Environmental Science \& Technology}, 58\penalty0 (3):\penalty0
+  1648--1658, January 2024.
+\newblock ISSN 0013-936X.
+\newblock \doi{10.1021/acs.est.3c04435}.
+\newblock URL \url{https://doi.org/10.1021/acs.est.3c04435}.
+
+\bibitem[Katritzky et~al.(2007)Katritzky, Pacureanu, Dobchev, and
+  Karelson]{katritzky_qspr_2007}
+Alan~R. Katritzky, Liliana Pacureanu, Dimitar Dobchev, and Mati Karelson.
+\newblock {QSPR} {Study} of {Critical} {Micelle} {Concentration} of {Anionic}
+  {Surfactants} {Using} {Computational} {Molecular} {Descriptors}.
+\newblock \emph{Journal of Chemical Information and Modeling}, 47\penalty0
+  (3):\penalty0 782--793, May 2007.
+\newblock ISSN 1549-9596.
+\newblock \doi{10.1021/ci600462d}.
+\newblock URL \url{https://doi.org/10.1021/ci600462d}.
+
+\bibitem[Hu et~al.(2010)Hu, Zhang, and Wang]{hu_review_2010}
+Jiwei Hu, Xiaoyi Zhang, and Zhengwu Wang.
+\newblock A {Review} on {Progress} in {QSPR} {Studies} for {Surfactants}.
+\newblock \emph{International Journal of Molecular Sciences}, 11\penalty0
+  (3):\penalty0 1020--1047, March 2010.
+\newblock ISSN 1422-0067.
+\newblock \doi{10.3390/ijms11031020}.
+\newblock URL \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC2868353/}.
+
+\bibitem[Qazi et~al.(2020)Qazi, Schlegel, Backus, Bonn, Bonn, and
+  Shahidzadeh]{qazi_dynamic_2020}
+Mohsin~J. Qazi, Simon~J. Schlegel, Ellen~H.G. Backus, Mischa Bonn, Daniel Bonn,
+  and Noushine Shahidzadeh.
+\newblock Dynamic {Surface} {Tension} of {Surfactants} in the {Presence} of
+  {High} {Salt} {Concentrations}.
+\newblock \emph{Langmuir}, 36\penalty0 (27):\penalty0 7956--7964, July 2020.
+\newblock ISSN 0743-7463.
+\newblock \doi{10.1021/acs.langmuir.0c01211}.
+\newblock URL \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC7366510/}.
+
+\bibitem[Chen et~al.(2025)Chen, Zhu, Zhong, Liu, Wang, Yu, Zhang, Ma, Sun, and
+  Xia]{chen_molecular_2025}
+Zhaojun Chen, Yangwen Zhu, Jinpan Zhong, Ping Liu, Yougi Wang, Hongmin Yu,
+  Li~Zhang, Luxuan Ma, Deshuai Sun, and Kai Xia.
+\newblock Molecular {Dynamics} {Simulation} of the {Effects} of
+  {Anionic}–{Nonionic} {Surfactants} on {Interfacial} {Properties} of the
+  {Oil}–{Water} {Interface}.
+\newblock \emph{ACS Omega}, 10\penalty0 (11):\penalty0 11325--11333, March
+  2025.
+\newblock \doi{10.1021/acsomega.4c11148}.
+\newblock URL \url{https://doi.org/10.1021/acsomega.4c11148}.
+
+\bibitem[Thacker et~al.(2023)Thacker, Bray, Warren, and
+  Anderson]{thacker_can_2023}
+Joseph C.~R. Thacker, David~J. Bray, Patrick~B. Warren, and Richard~L.
+  Anderson.
+\newblock Can {Machine} {Learning} {Predict} the {Phase} {Behavior} of
+  {Surfactants}?
+\newblock \emph{J. Phys. Chem. B}, 127\penalty0 (16):\penalty0 3711--3727,
+  April 2023.
+\newblock ISSN 1520-6106.
+\newblock \doi{10.1021/acs.jpcb.2c08232}.
+\newblock URL \url{https://doi.org/10.1021/acs.jpcb.2c08232}.
+
+\bibitem[Brozos et~al.(2024)Brozos, Rittig, Bhattacharya, Akanny, Kohlmann, and
+  Mitsos]{brozos_graph_2024}
+Christoforos Brozos, Jan~G. Rittig, Sandip Bhattacharya, Elie Akanny, Christina
+  Kohlmann, and Alexander Mitsos.
+\newblock Graph neural networks for surfactant multi-property prediction.
+\newblock \emph{Colloids and Surfaces A: Physicochemical and Engineering
+  Aspects}, 694:\penalty0 134133, August 2024.
+\newblock ISSN 0927-7757.
+\newblock \doi{10.1016/j.colsurfa.2024.134133}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S0927775724009944}.
+
+\bibitem[Nnadili et~al.(2024)Nnadili, Okafor, Olayiwola, Akinpelu, Kumar, and
+  Romagnoli]{nnadili_surfactant-specific_2024}
+Miriam Nnadili, Andrew~N. Okafor, Teslim Olayiwola, David Akinpelu, Revati
+  Kumar, and Jose~A. Romagnoli.
+\newblock Surfactant-{Specific} {AI}-{Driven} {Molecular} {Design}:
+  {Integrating} {Generative} {Models}, {Predictive} {Modeling}, and
+  {Reinforcement} {Learning} for {Tailored} {Surfactant} {Synthesis}.
+\newblock \emph{Industrial \& Engineering Chemistry Research}, 63\penalty0
+  (14):\penalty0 6313--6324, April 2024.
+\newblock ISSN 0888-5885.
+\newblock \doi{10.1021/acs.iecr.4c00401}.
+\newblock URL \url{https://doi.org/10.1021/acs.iecr.4c00401}.
+
+\bibitem[Landrum et~al.(2006)]{landrum2006rdkit}
+Greg Landrum et~al.
+\newblock Rdkit: Open-source cheminformatics, 2006.
+
+\bibitem[O'Boyle et~al.(2011)O'Boyle, Banck, James, Morley, Vandermeersch, and
+  Hutchison]{oboyle_open_2011}
+Noel~M. O'Boyle, Michael Banck, Craig~A. James, Chris Morley, Tim
+  Vandermeersch, and Geoffrey~R. Hutchison.
+\newblock Open {Babel}: {An} open chemical toolbox.
+\newblock \emph{Journal of Cheminformatics}, 3:\penalty0 33, October 2011.
+\newblock ISSN 1758-2946.
+\newblock \doi{10.1186/1758-2946-3-33}.
+
+\bibitem[Wang et~al.(2004)Wang, Wolf, Caldwell, Kollman, and
+  Case]{wang_development_2004}
+Junmei Wang, Romain~M. Wolf, James~W. Caldwell, Peter~A. Kollman, and David~A.
+  Case.
+\newblock Development and testing of a general amber force field.
+\newblock \emph{Journal of Computational Chemistry}, 25\penalty0 (9):\penalty0
+  1157--1174, July 2004.
+\newblock ISSN 0192-8651.
+\newblock \doi{10.1002/jcc.20035}.
+
+\bibitem[Jakalian et~al.(2002)Jakalian, Jack, and Bayly]{jakalian_fast_2002}
+Araz Jakalian, David~B. Jack, and Christopher~I. Bayly.
+\newblock Fast, efficient generation of high-quality atomic charges.
+  {AM1}-{BCC} model: {II}. {Parameterization} and validation.
+\newblock \emph{Journal of Computational Chemistry}, 23\penalty0 (16):\penalty0
+  1623--1641, December 2002.
+\newblock ISSN 0192-8651.
+\newblock \doi{10.1002/jcc.10128}.
+
+\bibitem[Case et~al.(2023)Case, Aktulga, Belfon, Cerutti, Cisneros, Cruzeiro,
+  Forouzesh, Giese, Götz, Gohlke, Izadi, Kasavajhala, Kaymak, King, Kurtzman,
+  Lee, Li, Liu, Luchko, Luo, Manathunga, Machado, Nguyen, O’Hearn, Onufriev,
+  Pan, Pantano, Qi, Rahnamoun, Risheh, Schott-Verdugo, Shajan, Swails, Wang,
+  Wei, Wu, Wu, Zhang, Zhao, Zhu, Cheatham, Roe, Roitberg, Simmerling, York,
+  Nagan, and Merz]{case_ambertools_2023}
+David~A. Case, Hasan~Metin Aktulga, Kellon Belfon, David~S. Cerutti, G.~Andrés
+  Cisneros, Vinícius Wilian~D. Cruzeiro, Negin Forouzesh, Timothy~J. Giese,
+  Andreas~W. Götz, Holger Gohlke, Saeed Izadi, Koushik Kasavajhala, Mehmet~C.
+  Kaymak, Edward King, Tom Kurtzman, Tai-Sung Lee, Pengfei Li, Jian Liu, Tyler
+  Luchko, Ray Luo, Madushanka Manathunga, Matias~R. Machado, Hai~Minh Nguyen,
+  Kurt~A. O’Hearn, Alexey~V. Onufriev, Feng Pan, Sergio Pantano, Ruxi Qi, Ali
+  Rahnamoun, Ali Risheh, Stephan Schott-Verdugo, Akhil Shajan, Jason Swails,
+  Junmei Wang, Haixin Wei, Xiongwu Wu, Yongxian Wu, Shi Zhang, Shiji Zhao,
+  Qiang Zhu, Thomas E.~III Cheatham, Daniel~R. Roe, Adrian Roitberg, Carlos
+  Simmerling, Darrin~M. York, Maria~C. Nagan, and Kenneth M.~Jr. Merz.
+\newblock {AmberTools}.
+\newblock \emph{Journal of Chemical Information and Modeling}, 63\penalty0
+  (20):\penalty0 6183--6191, October 2023.
+\newblock ISSN 1549-9596.
+\newblock \doi{10.1021/acs.jcim.3c01153}.
+\newblock URL \url{https://doi.org/10.1021/acs.jcim.3c01153}.
+
+\bibitem[Sousa~da Silva and Vranken(2012)]{sousa_da_silva_acpype_2012}
+Alan~W Sousa~da Silva and Wim~F Vranken.
+\newblock {ACPYPE} - {AnteChamber} {PYthon} {Parser} {interfacE}.
+\newblock \emph{BMC Research Notes}, 5:\penalty0 367, July 2012.
+\newblock ISSN 1756-0500.
+\newblock \doi{10.1186/1756-0500-5-367}.
+\newblock URL \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC3461484/}.
+
+\bibitem[Lindahl et~al.(2001)Lindahl, Hess, and van~der
+  Spoel]{lindahl_gromacs_2001}
+Erik Lindahl, Berk Hess, and David van~der Spoel.
+\newblock {GROMACS} 3.0: A package for molecular simulation and trajectory
+  analysis.
+\newblock \emph{Journal of Molecular Modeling}, 7\penalty0 (8):\penalty0
+  306--317, August 2001.
+\newblock ISSN 0948-5023.
+\newblock \doi{10.1007/s008940100045}.
+\newblock URL \url{https://doi.org/10.1007/s008940100045}.
+
+\bibitem[Abraham et~al.(2015)Abraham, Murtola, Schulz, Páll, Smith, Hess, and
+  Lindahl]{abraham_gromacs_2015}
+Mark~James Abraham, Teemu Murtola, Roland Schulz, Szilárd Páll, Jeremy~C.
+  Smith, Berk Hess, and Erik Lindahl.
+\newblock {GROMACS}: {High} performance molecular simulations through
+  multi-level parallelism from laptops to supercomputers.
+\newblock \emph{SoftwareX}, 1-2:\penalty0 19--25, September 2015.
+\newblock ISSN 2352-7110.
+\newblock \doi{10.1016/j.softx.2015.06.001}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S2352711015000059}.
+
+\bibitem[Abascal and Vega(2005)]{abascal_general_2005}
+J.~L.~F. Abascal and C.~Vega.
+\newblock A general purpose model for the condensed phases of water:
+  {TIP4P}/2005.
+\newblock \emph{The Journal of Chemical Physics}, 123\penalty0 (23):\penalty0
+  234505, December 2005.
+\newblock ISSN 0021-9606.
+\newblock \doi{10.1063/1.2121687}.
+\newblock URL \url{https://doi.org/10.1063/1.2121687}.
+
+\bibitem[Hess et~al.(1997)Hess, Bekker, Berendsen, and
+  Fraaije]{hess_lincs_1997}
+Berk Hess, Henk Bekker, Herman J.~C. Berendsen, and Johannes G. E.~M. Fraaije.
+\newblock {LINCS}: {A} linear constraint solver for molecular simulations.
+\newblock \emph{Journal of Computational Chemistry}, 18\penalty0 (12):\penalty0
+  1463--1472, 1997.
+\newblock ISSN 1096-987X.
+\newblock \doi{10.1002/(SICI)1096-987X(199709)18:12<1463::AID-JCC4>3.0.CO;2-H}.
+
+\bibitem[Chen and Guestrin(2016)]{chen_xgboost_2016}
+Tianqi Chen and Carlos Guestrin.
+\newblock {XGBoost}: {A} {Scalable} {Tree} {Boosting} {System}.
+\newblock In \emph{Proceedings of the 22nd {ACM} {SIGKDD} {International}
+  {Conference} on {Knowledge} {Discovery} and {Data} {Mining}}, {KDD} '16,
+  pages 785--794, New York, NY, USA, August 2016. Association for Computing
+  Machinery.
+\newblock ISBN 978-1-4503-4232-2.
+\newblock \doi{10.1145/2939672.2939785}.
+\newblock URL \url{https://dl.acm.org/doi/10.1145/2939672.2939785}.
+
+\bibitem[Boldini et~al.(2023)Boldini, Grisoni, Kuhn, Friedrich, and
+  Sieber]{boldini_practical_2023}
+Davide Boldini, Francesca Grisoni, Daniel Kuhn, Lukas Friedrich, and Stephan~A.
+  Sieber.
+\newblock Practical guidelines for the use of gradient boosting for molecular
+  property prediction.
+\newblock \emph{Journal of Cheminformatics}, 15:\penalty0 73, August 2023.
+\newblock ISSN 1758-2946.
+\newblock \doi{10.1186/s13321-023-00743-7}.
+\newblock URL \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC10464382/}.
+
+\bibitem[Akiba et~al.(2019)Akiba, Sano, Yanase, Ohta, and Koyama]{optuna_2019}
+Takuya Akiba, Shotaro Sano, Toshihiko Yanase, Takeru Ohta, and Masanori Koyama.
+\newblock Optuna: A next-generation hyperparameter optimization framework.
+\newblock In \emph{Proceedings of the 25th {ACM} {SIGKDD} International
+  Conference on Knowledge Discovery and Data Mining}, 2019.
+
+\bibitem[Vovk et~al.(2005)Vovk, Gammerman, and Shafer]{vovk_algorithmic_2005}
+Vladimir Vovk, Alexander Gammerman, and Glenn Shafer.
+\newblock \emph{Algorithmic Learning in a Random World}.
+\newblock Springer, New York, 2005.
+
+\bibitem[Angelopoulos and Bates(2023)]{angelopoulos_gentle_2023}
+Anastasios~N. Angelopoulos and Stephen Bates.
+\newblock A gentle introduction to conformal prediction and distribution-free
+  uncertainty quantification.
+\newblock \emph{Foundations and Trends in Machine Learning}, 16\penalty0
+  (4):\penalty0 494--591, 2023.
+\newblock \doi{10.1561/2200000101}.
+
+\end{thebibliography}

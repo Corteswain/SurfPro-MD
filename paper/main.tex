@@ -485,9 +485,7 @@ For visual clarity, each panel corresponds to a single ensemble (one test set an
 
 because each ensemble is constructed from a different holdout test set, the displayed performance is not necessarily representative of the average performance reported in Table~\ref{tab:results:model_performance}. 
 In particular, $A_{\min}$ and pC$_{20}$ perform better on average than their parity plots would suggest, reflecting variability between test sets rather than a systematic failure of the models. 
-Direct numerical comparison with the SurfPro models reported by Hödl et al.\cite{hodl_surfpro_2025} is not straightforward, because random splitting in the original study can place structurally similar molecules in both training and test sets and thereby yield overly optimistic generalisation estimates. 
-The cluster-based splitting strategy employed here provides a more stringent assessment of generalisation to novel compounds, at the cost of producing nominally lower performance metrics. 
-Taken together, the moderate-to-high rank correlations across both MD-derived and experimental targets, combined with the consistency of these trends across independent data partitions, indicate that the SurfPro-MD surrogate models are well suited for comparative surfactant screening in both academic and industrial settings.
+When evaluated under the same stratified splitting strategy used by Hödl et al.\cite{hodl_surfpro_2025}, our models achieve comparable predictive performance while additionally providing interpretable RDKit-based features, ensemble uncertainty estimates, and conformal prediction intervals. A detailed numerical comparison across split strategies is provided in Section~ef{app:split_comparison} of the Supporting Information. Taken together, the moderate-to-high rank correlations across both MD-derived and experimental targets, combined with the consistency of these trends across independent data partitions, indicate that the SurfPro-MD surrogate models are well suited for comparative surfactant screening in both academic and industrial settings.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{figures/MD_validation.pdf}

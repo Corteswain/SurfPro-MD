@@ -3,9 +3,8 @@
 predict.py — SurfPro-MD surrogate model predictor
 
 Predict surfactant properties from a SMILES string using the XGBoost ensemble
-models trained in surrogate.ipynb. Each property is predicted by averaging
-over a 5-fold cross-validation ensemble, with optional uncertainty estimates
-across 5 outer test splits.
+models trained in surrogate.py.  Every prediction comes with three complementary
+uncertainty measures and SHAP-based feature attribution.
 
 Predicted properties
 --------------------
@@ -14,49 +13,58 @@ Predicted properties
   Gamma_max        — maximum surface excess
   Area_min         — minimum area per molecule
   pC20             — efficiency of surface tension reduction
-  D_MOL            — molecular diffusion coefficient
-  D_SOL            — solution diffusion coefficient
-  surface_tension_avg — average surface tension
-  viscosity        — dynamic viscosity
+  D_MOL            — molecular self-diffusion coefficient  [×10⁻⁹ m²/s]
+  D_SOL            — solvent self-diffusion coefficient    [×10⁻⁹ m²/s]
+  surface_tension_avg — MD surface tension                [mN/m]
+  viscosity        — dynamic viscosity                    [mPa·s]
+
+Uncertainty measures
+--------------------
+  ensemble_std       — std of all 25 fold predictions; a relative model-confidence
+                       signal (no guaranteed coverage).
+  nn_dist            — Euclidean distance to the nearest training molecule in the
+                       scaled RDKit feature space; a structural novelty indicator.
+                       Requires fit_applicability_domain() to be called first.
+  conformal_lower/upper — prediction interval with nominal coverage `coverage`
+                       (default 90 %).  Guaranteed to contain the true value for
+                       ≥ coverage fraction of molecules similar to the training
+                       set (marginal coverage guarantee).
+                       Requires calibrate() to be called first.
 
 Usage (CLI)
 -----------
   python predict.py "CCCCCCCCCC(=O)O"
-  python predict.py "CCCCCCCCCC(=O)O" --uncertainty
-  python predict.py "CCCCCCCCCC(=O)O" --explain
-  python predict.py "CCCCCCCCCC(=O)O" --model path/to/models.pkl
   python predict.py "CCCCCCCCCC(=O)O" --training-csv ../data/SurfPro-MD.csv
+  python predict.py "CCCCCCCCCC(=O)O" --coverage 0.95 --top-features 5
+  python predict.py --input-file molecules.txt --training-csv ../data/SurfPro-MD.csv
 
 Usage (Python API)
 ------------------
-  from predict import SurfProPredictor, ApplicabilityDomain
+  from predict import SurfProPredictor
 
-  predictor = SurfProPredictor("models.pkl")
+  p = SurfProPredictor("models.pkl")
 
-  # Point prediction (single test split, all targets)
-  result = predictor.predict("CCCCCCCCCC(=O)O")
-  print(result["prediction"])
+  # One-time calibration step (saves conformal_calibration.pkl alongside models)
+  p.calibrate("../data/SurfPro-MD.csv")
+  p.save_calibration()                    # writes conformal_calibration.pkl
 
-  # With uncertainty across test splits
-  result = predictor.predict("CCCCCCCCCC(=O)O", return_ci=True)
-  print(result["uncertainty"])
+  # Build applicability domain (for NN-distance measure)
+  p.fit_applicability_domain("../data/SurfPro-MD.csv")
 
-  # With SHAP feature importances (requires the shap package)
-  result = predictor.predict("CCCCCCCCCC(=O)O", return_explanation=True)
-
-  # Applicability domain check
-  ad = ApplicabilityDomain(predictor)
-  ad.fit_from_csv("../data/SurfPro-MD.csv")
-  print(ad.baseline_stats)         # NN-distance distribution within the training set
-  print(ad.query("CCCCCCCCCC(=O)O"))  # how far is this molecule from training data?
+  # Predict with all uncertainty measures + top-5 SHAP features
+  result = p.predict("CCCCCCCCCC(=O)O", coverage=0.90, top_features=5)
+  print(result["prediction"])    # point estimates + units
+  print(result["uncertainty"])   # ensemble_std / conformal interval / nn_dist
+  print(result["top_features"])  # per-target top-N SHAP contributions
 
 Dependencies
 ------------
   rdkit, numpy, pandas, xgboost, scikit-learn
-  shap  (optional, only needed for --explain / return_explanation=True)
+  shap  (optional, only needed for top_features > 0)
 """
 
 import argparse
+import os
 import pickle
 
 import numpy as np
@@ -71,9 +79,8 @@ from rdkit.ML.Descriptors import MoleculeDescriptors
 _DESCRIPTOR_NAMES = [name for name, _ in Descriptors._descList]
 _CALCULATOR = MoleculeDescriptors.MolecularDescriptorCalculator(_DESCRIPTOR_NAMES)
 
-# Short, human-readable display names for each target.
-# These are used as index labels in returned DataFrames.
-# For matplotlib use, you can pass LaTeX strings via the target_labels argument.
+# ── Display configuration ─────────────────────────────────────────────────────
+
 DEFAULT_LABELS = {
     "pCMC":               "pCMC",
     "AW_ST_CMC":          "gamma_CMC",
@@ -87,46 +94,43 @@ DEFAULT_LABELS = {
     "surface_tension_avg": "gamma",
 }
 
-# Physical units for each target (plain text, for CLI output).
-# Sourced from the unit_labels dict in surrogate.ipynb.
 UNITS = {
     "pCMC":               "log(M)",
     "AW_ST_CMC":          "mN/m",
-    "Gamma_max":          "μmol/m²",
+    "Gamma_max":          "umol/m2",
     "pC20":               "log(M)",
     "Pi_CMC":             "mN/m",
-    "Area_min":           "nm²",
-    "viscosity":          "mPa·s",   # raw model output is Pa·s; see DISPLAY_SCALE
-    "D_MOL":              "m²/s",
-    "D_SOL":              "m²/s",
+    "Area_min":           "nm2",
+    "viscosity":          "mPa·s",
+    "D_MOL":              "x1e-9 m2/s",   # stored in 1e-5 cm2/s = 1e-9 m2/s
+    "D_SOL":              "x1e-9 m2/s",
     "surface_tension_avg": "mN/m",
 }
 
-# Multiply raw model output by this factor before reporting.
-# Used to convert to more human-readable magnitudes.
+# Multiply raw model output by this factor before reporting in UNITS above.
 DISPLAY_SCALE = {
-    "viscosity": 1e3,   # Pa·s → mPa·s
+    "viscosity":          1e3,   # Pa·s  → mPa·s
+    "surface_tension_avg": 0.1,  # bar·nm → mN/m
 }
+
+
+# ── Calibration pipeline constants (must match surrogate.py) ──────────────────
+
+_N_FOLDS           = 5
+_N_TEST_SPLITS     = 5
+_RANDOM_STATE      = 3
+_MIN_TEST_FRAC     = 0.07
+_MAX_TEST_FRAC     = 0.11
+_MIN_VAL_FRAC      = 0.12
+_MAX_VAL_FRAC      = 0.18
+_MAX_REJECT_TRIES  = 5
+_NN_ISO_THRESHOLD  = 50.0
 
 
 # ── SMILES utilities ──────────────────────────────────────────────────────────
 
 def canonicalize_smiles(smiles: str, keep_largest: bool = True) -> str:
-    """Return canonical SMILES, optionally keeping only the largest fragment.
-
-    Parameters
-    ----------
-    smiles : str
-        Input SMILES (may be non-canonical or contain salts/counterions).
-    keep_largest : bool
-        When the molecule contains multiple disconnected fragments (e.g. a salt),
-        keep only the fragment with the most heavy atoms. Default True.
-
-    Raises
-    ------
-    ValueError
-        If RDKit cannot parse the SMILES string.
-    """
+    """Return canonical SMILES, stripping counterions when keep_largest=True."""
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         raise ValueError(f"RDKit could not parse SMILES: {smiles!r}")
@@ -137,32 +141,17 @@ def canonicalize_smiles(smiles: str, keep_largest: bool = True) -> str:
 
 
 def compute_rdkit_descriptors(smiles: str) -> dict:
-    """Compute the full set of RDKit molecular descriptors for one SMILES string.
-
-    Returns a dict keyed as ``"rdkit-<DescriptorName>"`` to match the feature
-    schema stored inside models.pkl.
-    """
+    """Return a dict of all RDKit descriptors keyed as 'rdkit-<Name>'."""
     mol = Chem.MolFromSmiles(smiles)
     values = _CALCULATOR.CalcDescriptors(mol)
     return {f"rdkit-{name}": val for name, val in zip(_DESCRIPTOR_NAMES, values)}
 
 
-# ── SHAP compatibility helper ─────────────────────────────────────────────────
+# ── SHAP / XGBoost compatibility helper ──────────────────────────────────────
 
 def _make_shap_tree_explainer(booster):
-    """Create a shap.TreeExplainer, working around the XGBoost 2.x / SHAP version mismatch.
-
-    SHAP reads the model via booster.save_raw(raw_format="ubj"), decodes the UBJSON,
-    and calls float() on learner_model_param["base_score"].  XGBoost >= 2.0 stores
-    that value as a bracket-quoted string (e.g. b'[3.2084293E0]') in the binary,
-    which float() cannot parse.  load_config() does not fix it — XGBoost reconverts
-    the value to bracket notation internally.
-
-    The fix: temporarily replace save_raw() on the booster instance with a version
-    that patches the bracket-notation bytes in-place before returning them.  UBJSON
-    strings are length-prefixed, so the replacement is padded to the same byte length
-    with trailing spaces (Python's float() strips whitespace, so this is safe).
-    """
+    """Create shap.TreeExplainer with a workaround for the XGBoost 2.x base_score
+    bracket-notation bug (SHAP cannot parse '[3.208E0]' stored in UBJSON)."""
     import re
     import shap
 
@@ -172,12 +161,11 @@ def _make_shap_tree_explainer(booster):
         raw = _orig_save_raw(raw_format=raw_format)
         if raw_format == "ubj":
             def _unwrap(m):
-                inner = m.group(1)             # e.g. b'3.2084293E0'
-                val = float(inner)
+                val = float(m.group(1))
                 fixed = f"{val:.10g}".encode()
                 if len(fixed) < len(m.group(0)):
                     fixed = fixed + b" " * (len(m.group(0)) - len(fixed))
-                return fixed[: len(m.group(0))]  # never exceed original length
+                return fixed[: len(m.group(0))]
             raw = re.sub(rb"\[(-?[\d.]+(?:[Ee][+-]?\d+)?)\]", _unwrap, raw)
         return raw
 
@@ -185,204 +173,540 @@ def _make_shap_tree_explainer(booster):
     try:
         explainer = shap.TreeExplainer(booster)
     finally:
-        booster.save_raw = _orig_save_raw  # always restore
-
+        booster.save_raw = _orig_save_raw
     return explainer
 
 
-# ── Predictor class ───────────────────────────────────────────────────────────
+# ── Calibration pipeline helpers (mirror of surrogate.py data prep) ───────────
+# These are only called during calibrate().  All rdkit clustering imports are
+# deferred to inside calibrate() to keep the normal prediction path lightweight.
+
+def _sample_clusters(clusters, sizes, min_n, max_n, rng):
+    available = set(clusters)
+    chosen, count, streak = set(), 0, 0
+    while available:
+        c = rng.choice(list(available))
+        available.remove(c)
+        new = count + sizes[c]
+        if new < min_n:
+            chosen.add(c); count = new; streak = 0; continue
+        if min_n <= new <= max_n:
+            chosen.add(c); count = new; break
+        streak += 1
+        if streak >= _MAX_REJECT_TRIES:
+            break
+    return chosen
+
+
+def _create_cluster_splits(df_in, target_col):
+    df_t    = df_in.dropna(subset=[target_col, "cluster"]).copy()
+    df_t["cluster"] = df_t["cluster"].astype(int)
+    total   = len(df_t)
+    cs_all  = df_t.groupby("cluster").size().to_dict()
+    clusters = np.array(list(cs_all.keys()))
+    for ts in range(_N_TEST_SPLITS):
+        rng = np.random.RandomState(_RANDOM_STATE + ts)
+        tc  = _sample_clusters(clusters, cs_all,
+                                int(total * _MIN_TEST_FRAC),
+                                int(total * _MAX_TEST_FRAC), rng)
+        col_test = f"{target_col}_test_split_{ts}"
+        df_t[col_test] = "train_val"
+        df_t.loc[df_t["cluster"].isin(tc), col_test] = "test"
+        rem  = df_t[df_t[col_test] != "test"]
+        rc   = np.array(rem["cluster"].unique())
+        rs   = rem.groupby("cluster").size().to_dict()
+        rm   = len(rem)
+        for fi in range(_N_FOLDS):
+            rng_f = np.random.RandomState(_RANDOM_STATE + ts * 100 + fi)
+            vc    = _sample_clusters(rc, rs,
+                                     int(rm * _MIN_VAL_FRAC),
+                                     int(rm * _MAX_VAL_FRAC), rng_f)
+            col = f"{target_col}_split_t{ts}_f{fi}"
+            df_t[col] = "unused"
+            df_t.loc[df_t["cluster"].isin(set(rc) - vc), col] = "train"
+            df_t.loc[df_t["cluster"].isin(vc),           col] = "val"
+            df_t.loc[df_t[col_test] == "test",           col] = "test"
+    return df_t
+
+
+def _filter_outliers(df, target):
+    rules = {
+        "surface_tension_avg": lambda d: d["surface_tension_avg"] >= 250,
+        "viscosity":           lambda d: d["viscosity"] <= 0.003,
+        "AW_ST_CMC":           lambda d: d["AW_ST_CMC"] <= 52,
+        "Gamma_max":           lambda d: d["Gamma_max"] <= 6,
+        "Area_min":            lambda d: d["Area_min"] <= 4.2,
+        "pC20":                lambda d: d["pC20"] >= 1.8,
+        "D_MOL":               lambda d: d["D_MOL"] <= 0.8,
+    }
+    if target in rules:
+        return df[df[target].notnull() & rules[target](df)]
+    return df
+
+
+def _filter_nn_isolated(df, feature_cols):
+    from sklearn.neighbors import NearestNeighbors
+    from sklearn.preprocessing import StandardScaler
+    X = df[feature_cols].to_numpy().astype(float)
+    col_means = np.nanmean(X, axis=0)
+    for j in range(X.shape[1]):
+        X[np.isnan(X[:, j]), j] = col_means[j]
+    X_sc = StandardScaler().fit_transform(X)
+    nn   = NearestNeighbors(n_neighbors=2, metric="euclidean", n_jobs=-1).fit(X_sc)
+    d    = nn.kneighbors(X_sc)[0][:, 1]
+    return df.loc[df.index[d <= _NN_ISO_THRESHOLD]]
+
+
+# ── Predictor ─────────────────────────────────────────────────────────────────
 
 class SurfProPredictor:
-    """Ensemble XGBoost predictor for surfactant properties.
+    """Ensemble XGBoost predictor for nine surfactant properties.
 
-    Wraps the ``results`` dict produced by surrogate.ipynb.  Each target has
-    N_TEST_SPLITS outer test splits, each containing N_FOLDS fold models.
-    Predictions are the mean over all folds; uncertainty is estimated as the
-    standard deviation over outer test splits.
-
-    Parameters
-    ----------
-    model_file : str
-        Path to the pickled model file generated by surrogate.ipynb.
-    target_labels : dict, optional
-        Override the display names used as DataFrame index labels.
-        Keys must match the internal target names (e.g. "pCMC", "AW_ST_CMC").
-        If omitted, DEFAULT_LABELS is used.
-
-    Examples
-    --------
-    >>> predictor = SurfProPredictor("models.pkl")
-    >>> result = predictor.predict("CCCCCCCCCC(=O)O")
+    Quick start
+    -----------
+    >>> p = SurfProPredictor("models.pkl")
+    >>> p.calibrate("../data/SurfPro-MD.csv")   # one-time; saves calibration file
+    >>> p.fit_applicability_domain("../data/SurfPro-MD.csv")
+    >>> result = p.predict("CCCCCCCCCC(=O)O")
     >>> print(result["prediction"])
+    >>> print(result["uncertainty"])
+    >>> print(result["top_features"]["eta"])   # top SHAP features for viscosity
     """
 
-    def __init__(self, model_file: str = "models.pkl", target_labels: dict = None):
+    def __init__(
+        self,
+        model_file: str = "models.pkl",
+        cal_file: str = None,
+        target_labels: dict = None,
+    ):
+        """
+        Parameters
+        ----------
+        model_file : str
+            Path to models.pkl produced by surrogate.py.
+        cal_file : str, optional
+            Path to conformal_calibration.pkl.  If None, looks for
+            '<model_dir>/conformal_calibration.pkl' and loads it automatically.
+        target_labels : dict, optional
+            Override display names (keys = internal target names).
+        """
         with open(model_file, "rb") as f:
             self._results = pickle.load(f)
 
-        self.targets = list(self._results.keys())
-        self.target_labels = target_labels if target_labels is not None else DEFAULT_LABELS.copy()
+        self.targets      = list(self._results.keys())
+        self.target_labels = target_labels or DEFAULT_LABELS.copy()
+        self._model_file   = model_file
+        self._conformal_cal: dict = {}
+        self._ad_data: dict = {}
+
+        # Auto-load calibration file if it exists
+        if cal_file is None:
+            cal_file = os.path.join(os.path.dirname(os.path.abspath(model_file)),
+                                    "conformal_calibration.pkl")
+        if os.path.isfile(cal_file):
+            self.load_calibration(cal_file)
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 
     def _build_features(self, smiles: str, feature_schema: list) -> pd.DataFrame:
-        """Canonicalize SMILES and return a DataFrame aligned to feature_schema."""
-        canonical = canonicalize_smiles(smiles)
+        canonical   = canonicalize_smiles(smiles)
         descriptors = compute_rdkit_descriptors(canonical)
         return pd.DataFrame([descriptors]).reindex(columns=feature_schema)
 
     def _label(self, target: str) -> str:
         return self.target_labels.get(target, target)
 
-    # ── Prediction ────────────────────────────────────────────────────────────
+    def _all_fold_preds(self, smiles: str, target: str) -> np.ndarray:
+        """Return all 25 raw (unscaled) fold predictions for one target."""
+        first_info   = next(iter(self._results[target].values()))
+        X            = self._build_features(smiles, first_info["feature_schema"])
+        all_preds    = []
+        for info in self._results[target].values():
+            for fold in info["fold_models"]:
+                all_preds.append(
+                    fold["model"].inplace_predict(fold["scaler"].transform(X))[0]
+                )
+        return np.array(all_preds)
 
-    def predict_target(self, smiles: str, target: str) -> tuple:
-        """Predict a single property using all 25 models (5 splits × 5 folds).
+    # ── Conformal calibration ─────────────────────────────────────────────────
+
+    def calibrate(self, csv_path: str, smiles_col: str = "SMILES",
+                  verbose: bool = True) -> "SurfProPredictor":
+        """Compute conformal calibration scores from the training CSV.
+
+        For each target and each (test_split, fold) pair, runs the fold model
+        on its validation set and pools the absolute residuals as calibration
+        scores.  Also stores ensemble stds on the same val sets to support
+        normalised conformal (adaptive per-molecule intervals).
+
+        The calibration is stored on the predictor and used automatically by
+        predict().  Call save_calibration() to persist it.
 
         Parameters
         ----------
-        smiles : str
-            Input molecule.
-        target : str
-            Internal target name (must be in ``self.targets``).
-
-        Returns
-        -------
-        (mean, std) : tuple of float
-            Mean across all 25 predictions.
-            Std is the standard deviation of the 5 per-split means — the 5 folds
-            within a split share the same data partition and are correlated, so
-            pooling all 25 would overstate the uncertainty.
+        csv_path : str
+            Path to the training CSV (same file used by surrogate.py).
+        smiles_col : str
+            SMILES column name in the CSV.
+        verbose : bool
+            Print progress.
         """
-        # Feature schema is identical across splits — build X once
-        first_info = next(iter(self._results[target].values()))
-        X = self._build_features(smiles, first_info["feature_schema"])
+        from rdkit import Chem, DataStructs
+        from rdkit.Chem import AllChem
+        from rdkit.ML.Cluster import Butina
+        from sklearn.preprocessing import StandardScaler
 
-        split_means = []
-        for info in self._results[target].values():
-            fold_preds = [
-                fold["model"].inplace_predict(fold["scaler"].transform(X))[0]
-                for fold in info["fold_models"]
-            ]
-            split_means.append(np.mean(fold_preds))
+        if verbose:
+            print(f"Calibrating from {csv_path} …")
 
-        split_means = np.array(split_means)
-        return float(np.mean(split_means)), float(np.std(split_means))
+        df = pd.read_csv(csv_path)
+
+        # Butina clustering (same seed / threshold as surrogate.py)
+        df["mol"]   = df[smiles_col].apply(Chem.MolFromSmiles)
+        df_valid    = df[df["mol"].notnull()].copy()
+        fps         = [AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=1024)
+                       for m in df_valid["mol"]]
+        nfps        = len(fps)
+        dists       = []
+        for i in range(1, nfps):
+            sims = DataStructs.BulkTanimotoSimilarity(fps[i], fps[:i])
+            dists.extend(1 - s for s in sims)
+        clusters_b  = Butina.ClusterData(dists, nfps, distThresh=0.6, isDistData=True)
+        cid         = np.zeros(nfps, dtype=int)
+        for ci, cl in enumerate(clusters_b):
+            for idx in cl:
+                cid[idx] = ci
+        df_valid["cluster"] = cid.astype(int)
+        df["cluster"]       = np.nan
+        df.loc[df_valid.index, "cluster"] = df_valid["cluster"].values
+
+        self._conformal_cal = {}
+
+        for target in self.targets:
+            if verbose:
+                print(f"  {target}", flush=True)
+
+            df_t         = _create_cluster_splits(df, target)
+            df_t         = _filter_outliers(df_t, target)
+            feature_cols = self._results[target][0]["fold_models"][0]["features"]
+            df_t         = _filter_nn_isolated(df_t, feature_cols)
+
+            cal_errors, cal_stds = [], []
+
+            for ts in range(_N_TEST_SPLITS):
+                fold_models = self._results[target][ts]["fold_models"]
+                for fi, fm in enumerate(fold_models):
+                    col_fi   = f"{target}_split_t{ts}_f{fi}"
+                    if col_fi not in df_t.columns:
+                        continue
+                    val_mask = df_t[col_fi] == "val"
+                    if val_mask.sum() == 0:
+                        continue
+
+                    X_val = df_t.loc[val_mask, feature_cols].to_numpy()
+                    y_val = df_t.loc[val_mask, target].to_numpy()
+
+                    # Single-fold prediction (the model that withheld this val set)
+                    y_val_pred = fm["model"].inplace_predict(
+                        fm["scaler"].transform(X_val))
+                    cal_errors.extend(np.abs(y_val_pred - y_val))
+
+                    # Ensemble std on val (all 5 folds, same split ts)
+                    fold_preds_val = np.array([
+                        m["model"].inplace_predict(m["scaler"].transform(X_val))
+                        for m in fold_models
+                    ])
+                    cal_stds.extend(fold_preds_val.std(axis=0))
+
+            cal_errors = np.array(cal_errors)  # raw model units
+            cal_stds   = np.array(cal_stds)
+
+            self._conformal_cal[target] = {
+                "cal_errors": cal_errors,
+                "cal_stds":   cal_stds,
+                "n_cal":      len(cal_errors),
+            }
+
+        if verbose:
+            print("  Calibration complete.")
+        return self
+
+    def save_calibration(self, path: str = None) -> None:
+        """Save calibration scores to a pickle file.
+
+        Default path: '<model_dir>/conformal_calibration.pkl'
+        (auto-loaded by __init__ on the next run).
+        """
+        if path is None:
+            path = os.path.join(os.path.dirname(os.path.abspath(self._model_file)),
+                                "conformal_calibration.pkl")
+        with open(path, "wb") as f:
+            pickle.dump(self._conformal_cal, f)
+        print(f"Saved conformal calibration → {path}")
+
+    def load_calibration(self, path: str) -> "SurfProPredictor":
+        """Load calibration scores from a pickle file."""
+        with open(path, "rb") as f:
+            self._conformal_cal = pickle.load(f)
+        return self
+
+    # ── Applicability domain ──────────────────────────────────────────────────
+
+    def fit_applicability_domain(
+        self, csv_path: str, smiles_col: str = "SMILES", verbose: bool = True
+    ) -> "SurfProPredictor":
+        """Fit per-target nearest-neighbour applicability domain.
+
+        For each target, indexes the scaled RDKit feature vectors of all
+        training molecules that have a measured value for that target.
+        predict() then reports the distance from a query molecule to its
+        nearest training neighbour, and a normalised version
+        (distance / mean within-training spacing).
+
+        Parameters
+        ----------
+        csv_path : str
+            Path to the training CSV.
+        smiles_col : str
+            SMILES column name.
+        verbose : bool
+            Print progress.
+        """
+        from sklearn.neighbors import NearestNeighbors
+        from sklearn.metrics.pairwise import euclidean_distances
+
+        if verbose:
+            print(f"Fitting applicability domain from {csv_path} …")
+
+        df = pd.read_csv(csv_path)
+        ref_info     = self._results[self.targets[0]][0]
+        feature_schema = ref_info["feature_schema"]
+        scaler         = ref_info["fold_models"][0]["scaler"]
+
+        self._ad_data = {}
+
+        for target in self.targets:
+            subset = df[df[target].notna()] if target in df.columns else df
+            smiles_list = subset[smiles_col].dropna().tolist()
+
+            feats = []
+            for smi in smiles_list:
+                try:
+                    X = self._build_features(smi, feature_schema).values[0].astype(float)
+                    X[np.isnan(X)] = scaler.mean_[np.isnan(X)]
+                    feats.append(X)
+                except Exception:
+                    continue
+
+            if not feats:
+                continue
+
+            X_train = scaler.transform(np.array(feats))
+            D = euclidean_distances(X_train)
+            np.fill_diagonal(D, np.inf)
+            baseline = D.min(axis=1)
+
+            self._ad_data[target] = {
+                "X_train":        X_train,
+                "baseline_mean":  float(baseline.mean()),
+                "baseline_std":   float(baseline.std()),
+                "n_training":     len(X_train),
+            }
+
+        if verbose:
+            print("  Applicability domain ready.")
+        return self
+
+    def _query_ad(self, smiles: str) -> dict:
+        """Return per-target NN-distance info for one query molecule."""
+        if not self._ad_data:
+            return {}
+        ref_info = self._results[self.targets[0]][0]
+        feature_schema = ref_info["feature_schema"]
+        scaler         = ref_info["fold_models"][0]["scaler"]
+
+        X = self._build_features(smiles, feature_schema).values[0].astype(float)
+        X[np.isnan(X)] = scaler.mean_[np.isnan(X)]
+        X_q = scaler.transform(X.reshape(1, -1))
+
+        from sklearn.metrics.pairwise import euclidean_distances
+
+        results = {}
+        for target, data in self._ad_data.items():
+            dists     = euclidean_distances(X_q, data["X_train"])[0]
+            nn        = float(dists.min())
+            bm        = data["baseline_mean"]
+            threshold = bm + 2.0 * data["baseline_std"]
+            results[target] = {
+                "nn_dist":      nn,
+                "nn_dist_norm": nn / threshold if threshold > 0 else float("inf"),
+                "in_domain":    nn <= threshold,
+            }
+        return results
+
+    # ── Prediction ────────────────────────────────────────────────────────────
 
     def predict(
         self,
         smiles: str,
-        return_ci: bool = False,
-        return_explanation: bool = False,
-        shap_max_folds: int = 3,
-        ad: "ApplicabilityDomain" = None,
+        coverage: float = 0.90,
+        top_features: int = 5,
+        ad=None,          # kept for backward compat; prefer fit_applicability_domain()
     ) -> dict:
-        """Predict all surfactant properties for one molecule.
-
-        Uses all 25 models (5 outer splits × 5 CV folds).  The reported std
-        is the standard deviation across the 5 per-split means.
+        """Predict all surfactant properties with full uncertainty quantification.
 
         Parameters
         ----------
         smiles : str
             Input molecule as a SMILES string.
-        return_ci : bool
-            If True, also include min/max across outer test splits in the
-            output (in addition to the mean and std that are always returned).
-        return_explanation : bool
-            If True, compute SHAP feature importances for each target.
-            Requires the ``shap`` package and may be slow.
-        shap_max_folds : int
-            Number of CV folds to use per target when computing SHAP values.
-            Fewer folds is faster at some cost to precision.
+        coverage : float
+            Nominal coverage level for conformal prediction intervals (default 0.90).
+            Requires calibrate() to have been called (or conformal_calibration.pkl
+            to exist alongside models.pkl).
+        top_features : int
+            Number of top SHAP features to return per target.
+            Set to 0 to skip SHAP (faster). Default: 5.
         ad : ApplicabilityDomain, optional
-            If provided, add per-target applicability-domain distances as an
-            additional column (``nn_dist_norm``) in the prediction DataFrame.
+            Legacy applicability-domain object (from the old API).  Prefer calling
+            fit_applicability_domain() on this predictor instead.
 
         Returns
         -------
-        dict
-            Always contains:
-              ``"prediction"`` — pd.DataFrame with columns ``prediction``, ``std``,
-              and optionally ``nn_dist_norm``, indexed by display name.
-            Optionally contains:
-              ``"uncertainty"`` — pd.DataFrame (mean/std/min/max across test splits).
-              ``"explanation"`` — dict mapping target label → top-5 SHAP feature dict.
+        dict with keys:
+            ``"prediction"``   — pd.DataFrame[prediction, unit]
+            ``"uncertainty"``  — pd.DataFrame with columns:
+                                   ensemble_std          (always)
+                                   conformal_lower/upper (when calibrated)
+                                   nn_dist, nn_dist_norm (when AD fitted)
+            ``"top_features"`` — dict: label → pd.Series[feature → |SHAP|]
+                                   (only when top_features > 0)
         """
-        rows = {}
+        has_conformal = bool(self._conformal_cal)
+        has_ad        = bool(self._ad_data) or (ad is not None)
+
+        # NN-distance query (new-style AD takes priority over legacy object)
+        ad_results = {}
+        if self._ad_data:
+            ad_results = self._query_ad(smiles)
+        elif ad is not None:
+            for target, info in ad.query(smiles).items():
+                ad_results[target] = {
+                    "nn_dist":      info.get("nn_distance", float("nan")),
+                    "nn_dist_norm": info.get("nn_distance_normalized", float("nan")),
+                    "in_domain":    info.get("in_domain", None),
+                }
+
+        pred_rows      = {}
+        unc_rows       = {}
+        in_domain_rows = {}
+
         for target in self.targets:
-            mean, std = self.predict_target(smiles, target)
+            label = self._label(target)
             scale = DISPLAY_SCALE.get(target, 1.0)
-            rows[self._label(target)] = {
-                "prediction": mean * scale,
-                "std":        std  * scale,
+            eps   = 1e-10   # prevent division by zero in normalised conformal
+
+            # All 25 raw predictions
+            all_preds = self._all_fold_preds(smiles, target)
+            pred_raw  = float(np.mean(all_preds))
+            std_raw   = float(np.std(all_preds))    # std of all 25 fold predictions
+
+            pred_rows[label] = {
+                "prediction": pred_raw * scale,
                 "unit":       UNITS.get(target, ""),
             }
 
-        df_pred = pd.DataFrame(rows).T
+            unc = {"ensemble_std": std_raw * scale}
 
-        if ad is not None:
-            ad_results = ad.query(smiles)
-            df_pred["nn_dist_norm"] = [
-                ad_results.get(t, {}).get("nn_distance_normalized", float("nan"))
-                for t in self.targets
-            ]
+            # ── Conformal prediction intervals ────────────────────────────────
+            if has_conformal and target in self._conformal_cal:
+                cal        = self._conformal_cal[target]
+                cal_errors = cal["cal_errors"]   # raw model units
+                cal_stds   = cal["cal_stds"]     # raw model units
+                n_cal      = cal["n_cal"]
 
-        output = {"prediction": df_pred}
+                level = min(1.0, coverage * (1.0 + 1.0 / n_cal))
 
-        if return_ci:
-            ci = self.predict_with_error_bars(smiles)
-            ci.index = [self._label(t) for t in ci.index]
-            output["uncertainty"] = ci
+                # Standard conformal: fixed-width interval
+                q_conf = np.quantile(cal_errors, level)
+                unc["conformal_lower"] = (pred_raw - q_conf) * scale
+                unc["conformal_upper"] = (pred_raw + q_conf) * scale
 
-        if return_explanation:
-            explanations = {}
+                # Normalised conformal: interval scales with ensemble std
+                cal_norm_scores = cal_errors / (cal_stds + eps)
+                q_norm          = np.quantile(cal_norm_scores, level)
+                hw_norm         = q_norm * (std_raw + eps)
+                unc["conformal_norm_lower"] = (pred_raw - hw_norm) * scale
+                unc["conformal_norm_upper"] = (pred_raw + hw_norm) * scale
+            else:
+                unc["conformal_lower"]      = float("nan")
+                unc["conformal_upper"]      = float("nan")
+                unc["conformal_norm_lower"] = float("nan")
+                unc["conformal_norm_upper"] = float("nan")
+
+            # ── Applicability domain ──────────────────────────────────────────
+            if target in ad_results:
+                unc["nn_dist"]      = ad_results[target]["nn_dist"]
+                unc["nn_dist_norm"] = ad_results[target]["nn_dist_norm"]
+            else:
+                unc["nn_dist"]      = float("nan")
+                unc["nn_dist_norm"] = float("nan")
+
+            # in_domain is boolean/None — kept separate so the numeric DataFrame
+            # stays float dtype throughout (mixed types break pandas dtype inference)
+            in_domain_rows[label] = ad_results.get(target, {}).get("in_domain", None)
+
+            unc_rows[label] = unc
+
+        unc_df = pd.DataFrame(unc_rows).T.astype(float)
+        # Attach in_domain as a string column to keep float dtype on all others
+        unc_df["in_domain"] = pd.Series(in_domain_rows).map(
+            {True: "yes", False: "NO", None: "—"}
+        ).fillna("—")
+
+        output = {
+            "prediction": pd.DataFrame(pred_rows).T,
+            "uncertainty": unc_df,
+        }
+
+        # ── SHAP feature attribution ──────────────────────────────────────────
+        if top_features > 0:
+            output["top_features"] = {}
             for target in self.targets:
-                mean_imp, std_imp = self.explain_target(
-                    smiles, target, max_folds=shap_max_folds
+                label    = self._label(target)
+                mean_imp, _ = self.explain_target(
+                    smiles, target, test_id=0, max_folds=1, return_std=True
                 )
-                top = mean_imp.head(5)
-                explanations[self._label(target)] = {
-                    "top_features": top,
-                    "top_feature_uncertainty": std_imp.loc[top.index],
-                }
-            output["explanation"] = explanations
+                output["top_features"][label] = mean_imp.head(top_features).rename(
+                    lambda f: f.replace("rdkit-", "")
+                )
 
         return output
 
+    # ── Backward-compatible helpers ───────────────────────────────────────────
+
+    def predict_target(self, smiles: str, target: str) -> tuple:
+        """(mean, std) across all 25 fold predictions. Kept for backward compat."""
+        all_preds = self._all_fold_preds(smiles, target)
+        return float(np.mean(all_preds)), float(np.std(all_preds))
+
     def predict_with_error_bars(self, smiles: str) -> pd.DataFrame:
-        """Predict all targets with per-split breakdown (mean, std, min, max).
-
-        Calls predict_target for each target (which already uses all splits) and
-        additionally computes the per-split min/max for a full range estimate.
-
-        Returns
-        -------
-        pd.DataFrame
-            Indexed by internal target name, columns: mean, std, min, max.
-        """
+        """Per-split breakdown (mean, std, min, max). Kept for backward compat."""
         per_target = {}
-
         for target in self.targets:
-            first_info = next(iter(self._results[target].values()))
-            X = self._build_features(smiles, first_info["feature_schema"])
-
-            split_means = []
+            preds = []
             for info in self._results[target].values():
+                first_info = next(iter(self._results[target].values()))
+                X = self._build_features(smiles, first_info["feature_schema"])
                 fold_preds = [
                     fold["model"].inplace_predict(fold["scaler"].transform(X))[0]
                     for fold in info["fold_models"]
                 ]
-                split_means.append(np.mean(fold_preds))
-
-            split_means = np.array(split_means)
+                preds.append(np.mean(fold_preds))
+            preds = np.array(preds)
             per_target[target] = {
-                "mean": float(np.mean(split_means)),
-                "std":  float(np.std(split_means)),
-                "min":  float(np.min(split_means)),
-                "max":  float(np.max(split_means)),
+                "mean": float(np.mean(preds)), "std":  float(np.std(preds)),
+                "min":  float(np.min(preds)),  "max":  float(np.max(preds)),
             }
-
         return pd.DataFrame(per_target).T
 
     # ── SHAP explanations ─────────────────────────────────────────────────────
@@ -396,10 +720,7 @@ class SurfProPredictor:
         max_folds: int = 3,
         return_std: bool = True,
     ):
-        """Compute mean absolute SHAP values for one target property.
-
-        SHAP values are computed for each requested CV fold and then averaged.
-        This gives a per-feature importance score for the specific input molecule.
+        """Mean absolute SHAP values for one target.
 
         Parameters
         ----------
@@ -410,38 +731,24 @@ class SurfProPredictor:
         test_id : int
             Outer test split to use (0–4).
         fold_ids : list of int, optional
-            Specific fold indices to evaluate. Defaults to the first `max_folds` folds.
+            Specific fold indices to evaluate.
         max_folds : int
-            Upper limit on the number of folds to evaluate (fewer = faster).
+            Cap on folds (fewer = faster; 1 is usually sufficient for attribution).
         return_std : bool
-            If True, return ``(mean_series, std_series)``; otherwise return ``mean_series``.
-
-        Returns
-        -------
-        pd.Series or (pd.Series, pd.Series)
-            Feature importances sorted descending by mean absolute SHAP value.
-            If ``return_std=True``, also returns the per-feature standard deviation.
-
-        Notes
-        -----
-        Requires the ``shap`` package. The models are stored as ``xgb.Booster``
-        objects, so ``shap.TreeExplainer`` is used directly on the stored booster.
-        If you encounter version-compatibility errors between SHAP and XGBoost,
-        upgrade SHAP (``pip install --upgrade shap``).
+            If True return (mean_series, std_series), else just mean_series.
         """
         import shap
 
-        info = self._results[target][test_id]
-        X = self._build_features(smiles, info["feature_schema"])
-
+        info     = self._results[target][test_id]
+        X        = self._build_features(smiles, info["feature_schema"])
         selected = (fold_ids or list(range(len(info["fold_models"]))))[:max_folds]
 
         shap_values_all = []
         for fold_id in selected:
-            fold = info["fold_models"][fold_id]
-            X_scaled = fold["scaler"].transform(X)
-            explainer = _make_shap_tree_explainer(fold["model"])
-            shap_vals = explainer.shap_values(X_scaled)[0]
+            fold       = info["fold_models"][fold_id]
+            X_scaled   = fold["scaler"].transform(X)
+            explainer  = _make_shap_tree_explainer(fold["model"])
+            shap_vals  = explainer.shap_values(X_scaled)[0]
             shap_values_all.append(np.abs(shap_vals))
 
         shap_arr = np.array(shap_values_all)
@@ -453,21 +760,10 @@ class SurfProPredictor:
         if return_std:
             std_imp = pd.Series(shap_arr.std(axis=0), index=info["feature_schema"]).loc[mean_imp.index]
             return mean_imp, std_imp
-
         return mean_imp
 
-    def explain(self, smiles: str, max_folds: int = 3) -> dict:
-        """Return top-5 SHAP importances for all targets.
-
-        Uses split 0 for SHAP computation (running all 25 models would be
-        25× slower with negligible benefit for feature attribution).
-
-        Returns
-        -------
-        dict
-            Maps internal target name → dict with keys
-            ``"mean_importance"`` and ``"std_importance"`` (both pd.Series).
-        """
+    def explain(self, smiles: str, max_folds: int = 1) -> dict:
+        """Top-5 SHAP importances for all targets (uses split 0)."""
         results = {}
         for target in self.targets:
             mean_imp, std_imp = self.explain_target(
@@ -479,266 +775,134 @@ class SurfProPredictor:
             }
         return results
 
-    def print_explanation(self, smiles: str, max_folds: int = 3):
-        """Print a formatted SHAP feature importance summary for all targets."""
-        for target, res in self.explain(smiles, max_folds=max_folds).items():
-            label = self._label(target)
-            print(f"\n{'='*60}")
-            print(label)
-            print("=" * 60)
-            for feat in res["mean_importance"].index:
-                mean = res["mean_importance"][feat]
-                std  = res["std_importance"][feat]
-                print(f"  {feat:40s}  {mean:.4f} ± {std:.4f}")
 
-
-# ── Applicability domain ──────────────────────────────────────────────────────
+# ── Legacy ApplicabilityDomain class (kept for backward compat) ───────────────
 
 class ApplicabilityDomain:
-    """Per-target nearest-neighbour applicability domain in scaled RDKit feature space.
-
-    Each predicted property is trained on a different subset of molecules (not
-    every molecule has experimental data for every property).  This class fits
-    a separate training-set feature matrix per target so that the domain check
-    reflects the actual chemical space each model has seen.
-
-    Approach
-    --------
-    1. For each target, collect the molecules that have a measured value.
-    2. Compute RDKit descriptors and scale with the same StandardScaler used
-       during model training.
-    3. For a query molecule, find its Euclidean distance to the nearest
-       training neighbour in that scaled space.
-    4. Normalise by the mean of the within-training pairwise NN distances.
-       A normalised value >> 1 signals extrapolation for that target.
-
-    Parameters
-    ----------
-    predictor : SurfProPredictor
-        A loaded predictor instance.
-
-    Examples
-    --------
-    >>> predictor = SurfProPredictor("models.pkl")
-    >>> ad = ApplicabilityDomain(predictor)
-    >>> ad.fit_from_csv("../data/SurfPro-MD.csv")
-    >>> print(ad.baseline_stats)       # per-target NN-distance distributions
-    >>> print(ad.query("CCCCCCCCCC(=O)O"))  # per-target AD distances
-    """
+    """Backward-compatible AD class. Prefer SurfProPredictor.fit_applicability_domain()."""
 
     def __init__(self, predictor: SurfProPredictor):
-        ref_info = predictor._results[predictor.targets[0]][0]
-        self._predictor = predictor
+        ref_info            = predictor._results[predictor.targets[0]][0]
+        self._predictor     = predictor
         self._feature_schema = ref_info["feature_schema"]
-        self._scaler = ref_info["fold_models"][0]["scaler"]
-        self._fill_values = self._scaler.mean_  # impute NaN → 0 after scaling
+        self._scaler        = ref_info["fold_models"][0]["scaler"]
+        self._fill_values   = self._scaler.mean_
         self._per_target: dict = {}
 
-    # ── Internal helper ───────────────────────────────────────────────────────
-
-    def _scale_smiles_list(self, smiles_list: list) -> np.ndarray:
-        """Return scaled feature matrix for a list of SMILES, skipping invalid ones."""
+    def _scale_smiles_list(self, smiles_list):
         features = []
         for smi in smiles_list:
             try:
-                X = self._predictor._build_features(smi, self._feature_schema)
-                features.append(X.values[0])
+                X = self._predictor._build_features(smi, self._feature_schema).values[0].astype(float)
+                X[np.isnan(X)] = self._fill_values[np.isnan(X)]
+                features.append(X)
             except Exception:
                 continue
         if not features:
             return np.empty((0, len(self._feature_schema)))
-        arr = np.array(features, dtype=float)
-        nan_mask = np.isnan(arr)
-        if nan_mask.any():
-            arr[nan_mask] = np.take(self._fill_values, np.where(nan_mask)[1])
-        return self._scaler.transform(arr)
+        return self._scaler.transform(np.array(features))
 
-    # ── Fitting ───────────────────────────────────────────────────────────────
-
-    def fit(self, df: pd.DataFrame, smiles_col: str = "SMILES") -> "ApplicabilityDomain":
-        """Fit per-target training sets from a DataFrame.
-
-        For each target, only rows with a non-NaN value for that target column
-        are included.  This mirrors the actual training set each model saw.
-
-        Parameters
-        ----------
-        df : pd.DataFrame
-            The full dataset (same file used by surrogate.ipynb).  Must contain
-            a SMILES column and one column per predicted target.
-        smiles_col : str
-            Name of the SMILES column (default: ``"SMILES"``).
-
-        Returns
-        -------
-        self
-        """
+    def fit(self, df, smiles_col="SMILES"):
         from sklearn.metrics.pairwise import euclidean_distances
-
         for target in self._predictor.targets:
-            subset = df[df[target].notna()] if target in df.columns else df
-            smiles_list = subset[smiles_col].dropna().tolist()
-            training_scaled = self._scale_smiles_list(smiles_list)
-
-            if len(training_scaled) == 0:
+            subset     = df[df[target].notna()] if target in df.columns else df
+            X_train    = self._scale_smiles_list(subset[smiles_col].dropna().tolist())
+            if len(X_train) == 0:
                 continue
-
-            D = euclidean_distances(training_scaled)
+            D = euclidean_distances(X_train)
             np.fill_diagonal(D, np.inf)
-
             self._per_target[target] = {
-                "training_scaled":   training_scaled,
+                "training_scaled":   X_train,
                 "baseline_nn_dists": D.min(axis=1),
-                "n_training":        len(training_scaled),
+                "n_training":        len(X_train),
             }
-
         return self
 
-    def fit_from_csv(
-        self,
-        csv_path: str,
-        smiles_col: str = "SMILES",
-    ) -> "ApplicabilityDomain":
-        """Read the dataset CSV and call fit().
+    def fit_from_csv(self, csv_path, smiles_col="SMILES"):
+        return self.fit(pd.read_csv(csv_path), smiles_col=smiles_col)
 
-        Parameters
-        ----------
-        csv_path : str
-            Path to the dataset CSV (the same file used by surrogate.ipynb).
-        smiles_col : str
-            Name of the SMILES column (default: ``"SMILES"``).
-        """
-        df = pd.read_csv(csv_path)
-        if smiles_col not in df.columns:
-            raise ValueError(
-                f"Column {smiles_col!r} not found in {csv_path}. "
-                f"Available columns: {list(df.columns)}"
-            )
-        return self.fit(df, smiles_col=smiles_col)
-
-    # ── Query ─────────────────────────────────────────────────────────────────
-
-    def query(self, smiles: str) -> dict:
-        """Compute per-target applicability-domain distances for one molecule.
-
-        Parameters
-        ----------
-        smiles : str
-            Query molecule as a SMILES string.
-
-        Returns
-        -------
-        dict
-            Maps each internal target name to a dict with:
-
-            ``nn_distance``
-                Euclidean distance to the nearest training molecule for this target.
-            ``nn_distance_normalized``
-                ``nn_distance / baseline_mean``.  ~1 = typical spacing;
-                >> 1 = extrapolation.
-            ``baseline_mean``
-                Mean within-training NN distance for this target's training set.
-            ``n_training``
-                Number of molecules in this target's training set.
-            ``in_domain``
-                Heuristic: True when ``nn_distance <= baseline_mean``.
-        """
-        if not self._per_target:
-            raise RuntimeError("Call fit() or fit_from_csv() before query().")
-
-        X = self._predictor._build_features(smiles, self._feature_schema)
-        X_arr = X.values.astype(float)
-        nan_mask = np.isnan(X_arr)
-        if nan_mask.any():
-            X_arr[nan_mask] = self._fill_values[np.where(nan_mask)[1]]
-        X_scaled = self._scaler.transform(X_arr)
-
+    def query(self, smiles):
         from sklearn.metrics.pairwise import euclidean_distances
-
-        results = {}
+        X    = self._predictor._build_features(smiles, self._feature_schema).values[0].astype(float)
+        X[np.isnan(X)] = self._fill_values[np.isnan(X)]
+        X_q  = self._scaler.transform(X.reshape(1, -1))
+        out  = {}
         for target, data in self._per_target.items():
-            dists = euclidean_distances(X_scaled, data["training_scaled"])[0]
-            nn_dist = float(dists.min())
-            baseline_mean = float(data["baseline_nn_dists"].mean())
-            results[target] = {
-                "nn_distance":            nn_dist,
-                "nn_distance_normalized": nn_dist / baseline_mean if baseline_mean > 0 else float("inf"),
-                "baseline_mean":          baseline_mean,
-                "n_training":             data["n_training"],
-                "in_domain":              nn_dist <= baseline_mean,
+            dists = euclidean_distances(X_q, data["training_scaled"])[0]
+            nn    = float(dists.min())
+            bm    = float(data["baseline_nn_dists"].mean())
+            out[target] = {
+                "nn_distance": nn, "nn_distance_normalized": nn / bm if bm > 0 else float("inf"),
+                "baseline_mean": bm, "n_training": data["n_training"], "in_domain": nn <= bm,
             }
-
-        return results
+        return out
 
     @property
-    def baseline_stats(self) -> pd.DataFrame:
-        """Per-target summary statistics of within-training NN distances.
-
-        Returns a DataFrame indexed by target name with columns:
-        n_training, mean, std, min, median, max.
-        """
-        if not self._per_target:
-            raise RuntimeError("Call fit() or fit_from_csv() first.")
+    def baseline_stats(self):
         rows = {}
         for target, data in self._per_target.items():
             d = data["baseline_nn_dists"]
-            rows[target] = {
-                "n_training": data["n_training"],
-                "mean":       float(d.mean()),
-                "std":        float(d.std()),
-                "min":        float(d.min()),
-                "median":     float(np.median(d)),
-                "max":        float(d.max()),
-            }
+            rows[target] = {"n_training": data["n_training"], "mean": float(d.mean()),
+                            "std": float(d.std()), "min": float(d.min()),
+                            "median": float(np.median(d)), "max": float(d.max())}
         return pd.DataFrame(rows).T
 
 
-# ── CLI helpers ───────────────────────────────────────────────────────────────
+# ── CLI ───────────────────────────────────────────────────────────────────────
 
 def _read_input_file(path: str) -> list:
-    """Read (SMILES, name) pairs from a file.
-
-    Each non-empty, non-comment line must start with a SMILES string.
-    An optional name may follow, separated by a tab or a space:
-        CCCCCCCC(=O)O
-        CCCCCCCC(=O)O    octanoic acid
-        CCCCCCCC(=O)O\toctanoic acid
-    Lines starting with '#' are treated as comments.
-    """
     entries = []
     with open(path) as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            parts = line.split(None, 1)
+            parts  = line.split(None, 1)
             smiles = parts[0]
-            name = parts[1].strip() if len(parts) > 1 else None
+            name   = parts[1].strip() if len(parts) > 1 else None
             entries.append((smiles, name))
     return entries
 
 
 def _print_result(result: dict, name: str, args) -> None:
-    """Print the prediction output for one molecule."""
-    print(f"\n{'='*60}")
+    width = 62
+    print(f"\n{'='*width}")
     print(f"  {name}")
-    print(f"{'='*60}")
-    print(result["prediction"].to_string())
+    print(f"{'='*width}")
 
-    if args.uncertainty:
-        print("\nUncertainty (across outer test splits):")
-        print(result["uncertainty"].to_string())
+    pred = result["prediction"]
+    unc  = result["uncertainty"]
 
-    if args.explain:
-        print("\nTop SHAP features per target:")
-        for label, data in result["explanation"].items():
-            print(f"\n  {label}")
-            for feat, val in data["top_features"].items():
-                std = data["top_feature_uncertainty"][feat]
-                print(f"    {feat:40s}  {val:.4f} ± {std:.4f}")
+    # Merge into one display table
+    display = pred[["prediction", "unit"]].copy()
+    display["ensemble_std"] = unc["ensemble_std"]
 
+    has_conformal = not unc["conformal_lower"].isna().all()
+    if has_conformal:
+        display[f"CI_lo ({int(args.coverage*100)}%)"] = unc["conformal_lower"]
+        display[f"CI_hi ({int(args.coverage*100)}%)"] = unc["conformal_upper"]
 
-# ── CLI entry point ───────────────────────────────────────────────────────────
+    has_ad = not unc["nn_dist"].isna().all()
+    if has_ad:
+        display["nn_dist_norm"] = unc["nn_dist_norm"].round(2)
+        display["in_domain"]    = unc["in_domain"]   # already a string column
+
+    print(display.to_string(float_format=lambda x: f"{x:.4g}"))
+
+    if not has_conformal:
+        print("\n  [conformal intervals not available — "
+              "run calibrate() and save_calibration() first]")
+    if not has_ad:
+        print("  [nn_dist not available — "
+              "run fit_applicability_domain() or pass --training-csv]")
+
+    if "top_features" in result:
+        print(f"\n  Top {args.top_features} SHAP features per target:")
+        for label, feat_series in result["top_features"].items():
+            print(f"\n    {label}")
+            for feat, val in feat_series.items():
+                print(f"      {feat:40s}  {val:.4f}")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -747,53 +911,21 @@ def main():
         epilog="""
 examples:
   python predict.py "CCCCCCCCCC(=O)O"
-  python predict.py "CCCCCCCCCC(=O)O" --uncertainty --explain
-  python predict.py "CCCCCCCCCC(=O)O" --training-csv ../data/SurfPro-MD.csv
-  python predict.py --input-file molecules.txt
+  python predict.py "CCCCCCCCCC(=O)O" --training-csv ../data/SurfPro-MD.csv --coverage 0.95
+  python predict.py "CCCCCCCCCC(=O)O" --top-features 5
   python predict.py --input-file molecules.txt --training-csv ../data/SurfPro-MD.csv
         """,
     )
-    parser.add_argument(
-        "smiles", nargs="?", default=None,
-        help="SMILES string of the molecule to predict. Omit when using --input-file.",
-    )
-    parser.add_argument(
-        "--input-file", "-i", default=None, metavar="PATH",
-        help=(
-            "Path to a file with one molecule per line. "
-            "Each line: SMILES, or SMILES<tab>Name, or SMILES<space>Name. "
-            "Lines starting with '#' are ignored. "
-            "When provided, the positional smiles argument is not required."
-        ),
-    )
-    parser.add_argument(
-        "--model", default="models.pkl",
-        help="Path to models.pkl produced by surrogate.ipynb (default: models.pkl).",
-    )
-    parser.add_argument(
-        "--uncertainty", action="store_true",
-        help="Report mean ± std across all 5 outer test splits.",
-    )
-    parser.add_argument(
-        "--explain", action="store_true",
-        help="Print SHAP feature importances (requires the shap package, may be slow).",
-    )
-    parser.add_argument(
-        "--test-id", type=int, default=0,
-        help="Outer test split to use for point predictions (0–4, default: 0).",
-    )
-    parser.add_argument(
-        "--training-csv", default=None, metavar="PATH",
-        help=(
-            "Path to the training CSV (same file used by surrogate.ipynb). "
-            "When provided, per-target applicability-domain distances are added "
-            "as a column in the predictions table."
-        ),
-    )
-    parser.add_argument(
-        "--smiles-col", default="SMILES", metavar="COL",
-        help="SMILES column name in the training CSV (default: SMILES).",
-    )
+    parser.add_argument("smiles", nargs="?", default=None)
+    parser.add_argument("--input-file", "-i", default=None, metavar="PATH")
+    parser.add_argument("--model",        default="models.pkl")
+    parser.add_argument("--training-csv", default=None, metavar="PATH",
+                        help="Training CSV; enables conformal calibration and AD distance.")
+    parser.add_argument("--smiles-col",   default="SMILES", metavar="COL")
+    parser.add_argument("--coverage",     type=float, default=0.90, metavar="FLOAT",
+                        help="Nominal coverage for conformal intervals (default: 0.90).")
+    parser.add_argument("--top-features", type=int,   default=0, metavar="N",
+                        help="Number of top SHAP features to report (default: 0 = off).")
     args = parser.parse_args()
 
     if args.smiles is None and args.input_file is None:
@@ -801,11 +933,12 @@ examples:
 
     predictor = SurfProPredictor(args.model)
 
-    ad = None
     if args.training_csv:
-        print("Building per-target applicability domain (this may take a moment)…")
-        ad = ApplicabilityDomain(predictor)
-        ad.fit_from_csv(args.training_csv, smiles_col=args.smiles_col)
+        if not predictor._conformal_cal:
+            print("No calibration file found — running calibration (may take ~30 s)…")
+            predictor.calibrate(args.training_csv, smiles_col=args.smiles_col)
+            predictor.save_calibration()
+        predictor.fit_applicability_domain(args.training_csv, smiles_col=args.smiles_col)
 
     molecules = (
         _read_input_file(args.input_file)
@@ -818,17 +951,12 @@ examples:
         try:
             result = predictor.predict(
                 smiles,
-                test_id=args.test_id,
-                return_ci=args.uncertainty,
-                return_explanation=args.explain,
-                ad=ad,
+                coverage=args.coverage,
+                top_features=args.top_features,
             )
             _print_result(result, label, args)
         except Exception as exc:
-            print(f"\n{'='*60}")
-            print(f"  {label}  [ERROR]")
-            print(f"{'='*60}")
-            print(f"  {exc}")
+            print(f"\n{'='*62}\n  {label}  [ERROR]\n{'='*62}\n  {exc}")
 
 
 if __name__ == "__main__":
