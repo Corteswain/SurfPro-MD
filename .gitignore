@@ -6,3 +6,4 @@ slurm-*.out
 *png
 *jpg
 *pyc
+models.tar
