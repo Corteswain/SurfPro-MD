@@ -338,24 +338,11 @@ Hyperparameter optimisation was carried out independently for each train/validat
 For a given test set, the resulting 5 optimised models (one per train/validation split) were combined into an ensemble, and predictions on the holdout test set were obtained by averaging the individual model outputs.
 This procedure was repeated for all 5 test sets per target property, ensuring that reported performance metrics are not dependent on a single arbitrary split but instead reflect average performance across multiple statistically independent dataset partitions.
 
-To investigate whether any of the RDKit features are particularly important for surfactant behaviour, permutation importance was used to identify the top 10 features in each of the 5 test sets in each of the 9 targets.
-The importance was summed up across the 5 test sets to obtain a top 10 list for each target property.
 Further implementation details, including the full optimisation setup and model configuration, are provided in the accompanying GitHub repository to ensure full reproducibility.
-
-\paragraph{Feature representation ablation.}
-To verify that raw RDKit descriptors represent the best choice of molecular representation for this task, we systematically compared three alternatives using the identical cluster-based splitting protocol and HPO setup.
-
-First, we evaluated Morgan circular fingerprints across nine configurations combining three radii ($r \in \{2, 3, 4\}$) and three bit-vector lengths ($b \in \{512, 1024, 2048\}$), each used as a raw binary fingerprint vector.
-
-Second, we applied two PCA-based compression strategies to the same 217 RDKit descriptors.
-In the \emph{global PCA} approach, all descriptors were standardised and projected onto principal components retaining 95\% of the variance, reducing the feature set to between 35 and 46 components depending on the target-specific molecule subset.
-
-In the \emph{two-stage PCA} approach, descriptors were first partitioned into chemically interpretable groups based on naming conventions: topological indices (Chi, Kappa), five families of surface-area distribution bins (PEOE\_VSA, SMR\_VSA, SlogP\_VSA, EState\_VSA, VSA\_EState), molecular mass variants, ring count descriptors, BCUT2D global descriptors, and MQN fragment counts.
-Within each group, a single principal component was extracted.
-Groups for which this PC1 explained at least 80\% of within-group variance (in practice: Chi, Kappa, and MolWt families) were retained as single interpretable scalars;
-all remaining groups and ungrouped descriptors were pooled and compressed by global PCA at 95\% variance.
-This yielded 4 group-level features combined with 36--47 pool-level components per target, giving approximately 40--51 features in total.
-Both PCA models were fitted independently per target property on the molecule subset used for that target.
+To characterise which molecular descriptors drive predictions, permutation importance and SHAP-based feature attribution analyses were carried out for all nine targets;
+results are reported in the Supporting Information.
+To verify that RDKit descriptors represent the optimal molecular representation for this task, we additionally compared them against Morgan circular fingerprints and two PCA-compressed variants;
+this ablation study is described fully in the Supporting Information.
 
 
 \subsection{Uncertainty Estimation}
@@ -487,51 +474,10 @@ This $R^2$--$\rho$ disparity is at least partly attributable to the limited nume
 Since $R^2$ is defined relative to the mean-baseline predictor, datasets with concentrated value distributions yield strong baseline performance and thus systematically low $R^2$ even when a model captures meaningful predictive signal.
 The higher Spearman correlations observed for these targets indicate that the models retain substantial ability to recover correct rank ordering despite the metric-level penalty.
 
-\paragraph{Feature-level analysis of structure-property relationships.}
-%TODO we need to do more thorough analysis here
-To gain insight into the molecular descriptors driving model predictions, we performed a permutation-feature-importance analysis (see Methods) and examined which descriptors appeared in the top-10 most important features across multiple target models.
-A small number of descriptors recur across the nine targets: one feature appears in the top-10 list of six different models, and two further features appear in five each.
-The three most recurrent descriptors are VSA\_EState9, which captures the distribution of molecular surface area across specific electronic environments;
-fr\_NH0, reflecting the presence of tertiary amine functionalities;
-and BCUT2D\_MRLOW, a global descriptor related to molecular polarisability and size.
-Despite this recurrence, the overall overlap of important features across targets remains limited, indicating that no single descriptor universally governs all surfactant properties considered here;
-rather, different properties depend on partially distinct aspects of molecular structure, consistent with the multifaceted nature of surfactant behaviour.
-Notably, all three of the most-recurrent descriptors contribute to models predicting diffusion-related properties, suggesting that they capture structural characteristics relevant for molecular mobility in solution.
-
-
-\paragraph{Feature representation ablation.}
-Table~\ref{tab:ablation} summarises performance for three representative targets across all evaluated feature strategies.
-Morgan circular fingerprints consistently underperform the RDKit-based approach across all targets and configurations.
-The best-performing Morgan variant (radius 4, 1024 bits) achieves $R^2 = 0.246 \pm 0.142$ for pCMC, $R^2 = 0.506 \pm 0.055$ for $D_{\mathrm{SOL}}$, and $R^2 = 0.176 \pm 0.054$ for $\eta$ --- compared to $0.518 \pm 0.143$, $0.920 \pm 0.012$, and $0.818 \pm 0.044$ for the raw RDKit baseline.
-The gap is most pronounced for transport properties, which are most sensitive to the explicit physicochemical features encoded by RDKit descriptors --- surface area distribution, partial charge distribution, molecular weight --- that circular fingerprints do not capture directly.
-
-Both PCA-based variants of the RDKit descriptors yield performance slightly below the full 217-feature set.
-The two-stage PCA ($R^2 = 0.518 \pm 0.115$ for pCMC, $0.845 \pm 0.044$ for $D_{\mathrm{SOL}}$, $0.772 \pm 0.084$ for $\eta$) narrows the gap relative to the global PCA approach ($0.471 \pm 0.149$, $0.825 \pm 0.039$, $0.730 \pm 0.072$) but neither recovers the full-descriptor performance.
-The fact that compression leads to a measurable drop indicates that the 217 RDKit features do not introduce significant overfitting on this dataset, and that the raw descriptor set represents the best available balance of predictive performance and feature-level interpretability.
-
-\begin{table}[ht]
-\centering
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lcccccc}
-\toprule
-\textbf{Representation} & \multicolumn{2}{c}{\textbf{pCMC}} & \multicolumn{2}{c}{\textbf{$D_{\mathrm{SOL}}$}} & \multicolumn{2}{c}{\textbf{$\eta$}} \\
- & $R^2$ & $\rho$ & $R^2$ & $\rho$ & $R^2$ & $\rho$ \\
-\midrule
-Raw RDKit (217 features)                  & $0.518 \pm 0.143$ & $0.731 \pm 0.099$ & $0.920 \pm 0.012$ & $0.953 \pm 0.009$ & $0.818 \pm 0.044$ & $0.923 \pm 0.031$ \\
-RDKit + two-stage PCA ($\sim$40--51 feat.)& $0.518 \pm 0.115$ & $0.726 \pm 0.098$ & $0.845 \pm 0.044$ & $0.912 \pm 0.023$ & $0.772 \pm 0.084$ & $0.911 \pm 0.022$ \\
-RDKit + global PCA (35--46 PCs)           & $0.471 \pm 0.149$ & $0.702 \pm 0.115$ & $0.825 \pm 0.039$ & $0.901 \pm 0.020$ & $0.730 \pm 0.072$ & $0.887 \pm 0.046$ \\
-Morgan ($r$=4, $b$=1024)                  & $0.246 \pm 0.142$ & $0.510 \pm 0.166$ & $0.506 \pm 0.055$ & $0.705 \pm 0.047$ & $0.176 \pm 0.054$ & $0.537 \pm 0.044$ \\
-\bottomrule
-\end{tabular}%
-}
-\caption{Feature representation ablation for three representative targets (pCMC: best experimental target;
-$D_{\mathrm{SOL}}$: best MD target;
-$\eta$: strong MD target).
-All variants use the same cluster-based evaluation protocol and 30-trial HPO.
-Only the best-performing Morgan configuration is shown;
-results for all 9 Morgan variants are consistent with this trend.}
-\label{tab:ablation}
-\end{table}
+\paragraph{Feature attribution and representation ablation.}
+Permutation importance and SHAP-based feature attribution analyses were carried out for all nine targets.
+Raw RDKit descriptors were found to outperform Morgan circular fingerprints and PCA-compressed variants across all targets.
+Full results for both analyses are provided in the Supporting Information.
 
 \paragraph{Comparison with prior SurfPro models and screening utility.}
 Parity plots for all nine target properties are shown in Figure~\ref{fig:results}\textbf{c}--\textbf{j}. 
@@ -563,21 +509,16 @@ The dashed lines indicate the identity line.
 \label{fig:results}
 \end{figure}
 
+% TODO: Add combined uncertainty measures figure here (NN distance,
+% ensemble disagreement, and conformal calibration in a single panel).
+
 \subsection{Uncertainty Estimation}
 \label{sec:results:uncertainty}
 
-\paragraph{Nearest-neighbour distance.}
-Figure~\ref{fig:unc_nndist} shows absolute test error against NN distance to the training set for all nine target properties. 
-Spearman correlations are positive for most targets, with the strongest signal observed for pCMC ($\rho = 0.34$), pC$_{20}$ ($\rho = 0.34$), and $\eta$ ($\rho = 0.28$). 
-Correlations are weak or negligible for $\gamma_{\mathrm{CMC}}$ ($\rho = 0.04$) and $\gamma$ ($\rho = 0.11$), indicating that proximity in RDKit feature space is not predictive of prediction quality for these targets.
-Notably, $D_{\mathrm{MOL}}$ shows a marginally negative correlation ($\rho = -0.06$), suggesting that the feature space does not capture the structural variation relevant for solute diffusion.
-
-\paragraph{Ensemble disagreement.}
-Figure~\ref{fig:unc_ensstd} shows absolute test error against ensemble standard deviation across all test splits. 
-The scatter plots include the identity line $y = x$ as a reference: points below this line indicate an underestimate of error (overconfidence), while points above indicate an overestimate (underconfidence).
-Spearman correlations are highest for $D_{\mathrm{MOL}}$ ($\rho = 0.45$), $A_{\min}$ ($\rho = 0.31$), pCMC ($\rho = 0.29$), $D_{\mathrm{SOL}}$ ($\rho = 0.28$), and $\eta$ ($\rho = 0.28$).
-For $\gamma$ ($\rho = 0.06$) and $\gamma_{\mathrm{CMC}}$ ($\rho = 0.07$), ensemble disagreement carries almost no information about prediction error.
-The complementarity of the two heuristics is illustrated by $D_{\mathrm{MOL}}$, for which NN distance fails ($\rho = -0.06$) but ensemble standard deviation is the most informative signal across all targets ($\rho = 0.45$).
+\paragraph{Nearest-neighbour distance and ensemble disagreement.}
+Spearman correlations between NN distance and absolute error, and between ensemble standard deviation and absolute error, are summarised in Table~\ref{tab:conformal_coverage}.
+The two heuristics are complementary: NN distance is most informative for pCMC and pC$_{20}$ ($\rho_{\mathrm{NN}} = 0.34$), while ensemble standard deviation provides the strongest signal for $D_{\mathrm{MOL}}$ ($\rho_{\mathrm{std}} = 0.45$), a target for which NN distance carries no predictive information ($\rho_{\mathrm{NN}} = -0.06$).
+Per-molecule scatter plots for both heuristics are provided in the Supporting Information.
 
 \paragraph{Conformal calibration.}
 Figure~\ref{fig:unc_conformal} shows calibration curves for all nine target properties.
@@ -620,26 +561,6 @@ Gap @ 0.90 is the signed difference between empirical and nominal coverage at th
 \label{tab:conformal_coverage}
 \end{table}
 
-\begin{figure}
-    \includegraphics[width=\textwidth]{../surrogate-models/unc_error_vs_nndist.pdf}
-    \caption{Absolute prediction error versus nearest-neighbour distance to the training set in standardised feature space, for all nine target properties.
-    Each point corresponds to one test molecule;
-    colours distinguish the five independent test splits (viridis scale).
-    The Spearman rank correlation $\rho$ is annotated in each panel.
-    Points with NN distance exceeding 40 are excluded;
-    the number of excluded points is noted where non-zero.}
-    \label{fig:unc_nndist}
-\end{figure}
-
-\begin{figure}
-    \includegraphics[width=\textwidth]{../surrogate-models/unc_error_vs_ens_std.pdf}
-    \caption{Absolute prediction error versus ensemble standard deviation for all nine target properties.
-    Each point corresponds to one test molecule;
-    colours distinguish the five independent test splits (viridis scale).
-    The dashed diagonal line indicates perfect correspondence between ensemble standard deviation and absolute error.
-    The Spearman rank correlation $\rho$ is annotated in each panel.}
-    \label{fig:unc_ensstd}
-\end{figure}
 
 \begin{figure}
     \includegraphics[width=\textwidth]{../surrogate-models/unc_conformal_calibration.pdf}
@@ -679,26 +600,11 @@ For the two uncertainty heuristics --- NN distance and ensemble disagreement ---
 This is not a coincidence: it reflects a well-known characteristic of gradient-boosted ensembles, which tend to agree confidently on interpolated predictions and disagree near the boundaries of the training distribution.
 Properties with modest Spearman correlations ($\rho_{\mathrm{NN}}$ or $\rho_{\mathrm{std}} < 0.1$) --- most notably $\gamma$ and $\gamma_{\mathrm{CMC}}$ --- are targets where the model is wrong in ways that are not captured by either structural proximity or ensemble disagreement, indicating a more fundamental limitation of the feature representation or the model's inductive bias for these properties.
 
-The conformal calibration curves reveal a particularly informative pattern: the direction of the deviation from the diagonal is not the same for all properties, and this asymmetry is physically meaningful.
-For the best-predicted MD-derived targets ($D_{\mathrm{SOL}}$, $\eta$) and for $\gamma_{\mathrm{CMC}}$, the calibration curves fall systematically below the diagonal, indicating under-coverage.
-This occurs because the model has learned tight, accurate predictions in-distribution, resulting in small calibration residuals and narrow conformal intervals.
-When these intervals are applied to test molecules from held-out structural clusters --- which are by construction more distant from the training distribution than the validation folds --- the intervals are insufficient to capture the inflated errors, and coverage falls below the nominal level.
-
-By contrast, for $A_{\min}$, $\Gamma_{\max}$, and pC$_{20}$, the calibration curves sit consistently above the diagonal: the model is over-conservative, and requesting 90\% nominal coverage routinely yields 91--96\% empirical coverage.
-These properties are difficult to predict \textit{uniformly} across chemical space rather than specifically at the boundary of the training distribution.
-Because the calibration residuals already reflect this uniform difficulty, the resulting conformal intervals are wide enough to cover even the test-set molecules from novel clusters.
-The over-coverage confirms that these properties are hard everywhere --- not harder in the held-out clusters than in the validation folds.
-
-This has a practical implication for users of SurfPro-MD.
-For MD-derived properties such as $\eta$ and $D_{\mathrm{SOL}}$, where under-coverage is most pronounced, a user requesting 90\% prediction intervals should expect approximately 85\% actual coverage on structurally novel molecules.
-Requesting 95\% nominal coverage recovers approximately 92--93\% empirical coverage for these targets (Table~\ref{tab:conformal_coverage}).
-For $A_{\min}$ and $\Gamma_{\max}$, reported 90\% intervals are already conservative by several percentage points, and no correction is needed.
-For pCMC and $D_{\mathrm{MOL}}$, where calibration curves lie essentially on the diagonal, the conformal intervals can be trusted at face value.
-
-More broadly, the conformal calibration curve functions as a property-specific fingerprint of the degree to which cluster-based generalisation differs from interpolation.
-Properties for which the test clusters are genuinely more OOD than the validation folds --- those with tight in-distribution fits and under-coverage --- are precisely the ones where the cluster-based splitting protocol is most stringent.
-Properties for which the calibration curve exceeds the diagonal reflect targets where the whole chemical space is uniformly hard, and the splitting strategy does not introduce additional difficulty.
-This distinction is not visible in aggregate performance metrics such as $R^2$ or Spearman $\rho$, making the calibration analysis a complementary diagnostic that reveals structure in the difficulty of the learning problem that aggregate metrics conceal.
+The conformal calibration curves (Figure~\ref{fig:unc_conformal}) reveal three distinct regimes across the nine targets.
+Near-perfect calibration is observed for pCMC and $D_{\mathrm{MOL}}$.
+The high-accuracy MD targets ($D_{\mathrm{SOL}}$, $\eta$) and $\gamma_{\mathrm{CMC}}$ show mild under-coverage: tight in-distribution residuals yield narrow conformal intervals that are insufficient to cover the inflated errors on structurally novel test clusters.
+Conversely, the low-$R^2$ experimental targets ($\Gamma_{\max}$, $A_{\min}$, pC$_{20}$) are consistently over-covered, because their difficulty is uniformly distributed across chemical space rather than concentrated at cluster boundaries.
+A detailed analysis of these calibration regimes and their practical implications for users is provided in the Supporting Information.
 
 Both of these components are already included in SurfPro-MD.
 Applicability domain estimation is provided through the nearest-neighbour distance analysis described above, flagging predictions that require extrapolation beyond the training distribution.
