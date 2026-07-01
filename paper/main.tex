@@ -485,7 +485,7 @@ For visual clarity, each panel corresponds to a single ensemble (one test set an
 
 because each ensemble is constructed from a different holdout test set, the displayed performance is not necessarily representative of the average performance reported in Table~\ref{tab:results:model_performance}. 
 In particular, $A_{\min}$ and pC$_{20}$ perform better on average than their parity plots would suggest, reflecting variability between test sets rather than a systematic failure of the models. 
-When evaluated under the same stratified splitting strategy used by Hödl et al.\cite{hodl_surfpro_2025}, our models achieve comparable predictive performance while additionally providing interpretable RDKit-based features, ensemble uncertainty estimates, and conformal prediction intervals. A detailed numerical comparison across split strategies is provided in Section~ef{app:split_comparison} of the Supporting Information. Taken together, the moderate-to-high rank correlations across both MD-derived and experimental targets, combined with the consistency of these trends across independent data partitions, indicate that the SurfPro-MD surrogate models are well suited for comparative surfactant screening in both academic and industrial settings.
+When evaluated under the same stratified splitting strategy used by Hödl et al.\cite{hodl_surfpro_2025}, our models achieve comparable predictive performance while additionally providing interpretable RDKit-based features, ensemble uncertainty estimates, and conformal prediction intervals. A detailed numerical comparison across split strategies is provided in the Supporting Information. Taken together, the moderate-to-high rank correlations across both MD-derived and experimental targets, combined with the consistency of these trends across independent data partitions, indicate that the SurfPro-MD surrogate models are well suited for comparative surfactant screening in both academic and industrial settings.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{figures/MD_validation.pdf}
@@ -582,14 +582,13 @@ Transport properties --- diffusion coefficients and viscosity --- are predicted 
 For interfacial and adsorption properties, absolute regression accuracy is lower, but meaningful rank ordering is preserved in most cases, as reflected by Spearman correlations of 0.5--0.7 for targets such as $\gamma_{\mathrm{CMC}}$ and pCMC.
 Rank preservation is the more relevant metric for the screening use case: a scoring function that correctly orders candidates will guide a generative model toward better molecules even when absolute predicted values deviate from experiment.
 
-A key design choice in SurfPro-MD is the cluster-based splitting protocol used during model development.
-By enforcing chemical dissimilarity between training and test compounds, this protocol ensures that performance estimates reflect generalisation to structurally novel molecules rather than interpolation within the training distribution.
-Reported $R^2$ values are therefore conservative relative to what would be observed with random splitting;
-the rank-correlation metrics provide a better indication of the tool's practical utility for screening novel chemical space.
-
-SurfPro-MD is intended as a first-pass filter rather than a final verdict.
-For properties where prediction quality is lower --- notably $A_{\min}$, $\Gamma_{\max}$, and $\gamma$ --- predictions should be treated as indicative, and promising candidates identified by the tool should be followed up with targeted simulations or experiments.
-The ensemble structure of the models provides per-prediction uncertainty estimates that give users a signal about which predictions are most reliable.
+Like any surrogate model, SurfPro-MD operates within an applicability domain determined by the chemical diversity of its training set.
+What distinguishes this tool is that this domain is made explicit rather than left to the user to infer.
+Three complementary diagnostics are provided for every prediction: nearest-neighbour distance in the RDKit feature space flags structural extrapolation beyond the training distribution;
+ensemble disagreement quantifies sensitivity to the choice of training data;
+and conformal prediction intervals provide coverage-calibrated uncertainty bounds with known statistical properties.
+For the best-predicted properties, these diagnostics give coherent and informative signals even for structurally novel compounds.
+For harder targets --- notably $A_{\min}$, $\Gamma_{\max}$, and $\gamma$ --- where absolute accuracy is lower, the uncertainty estimates correctly reflect this difficulty, allowing users to distinguish confident from borderline predictions before committing to downstream experiments or simulations.
 
 \paragraph{Uncertainty estimation and the role of distributional shift.}
 The three uncertainty diagnostics reveal a coherent picture that connects model performance, applicability domain, and the structure of the chemical space covered by SurfPro-MD.
