@@ -519,21 +519,18 @@ The two heuristics are complementary: NN distance is most informative for pCMC a
 Per-molecule scatter plots for both heuristics are provided in the Supporting Information.
 
 \paragraph{Conformal calibration.}
-Figure~\ref{fig:unc_conformal} shows calibration curves for all nine target properties.
-Table~\ref{tab:conformal_coverage} reports empirical coverage at nominal levels from 50\% to 95\%, along with the gap at the 90\% nominal level.
-Three distinct calibration regimes are observed.
+Figure~\ref{fig:unc_conformal} shows calibration curves for all nine target properties;
+Table~\ref{tab:conformal_coverage} summarises empirical coverage at nominal levels from 50\% to 90\%.
+The calibration behaviour follows a pattern that correlates with training-set size and model accuracy.
 
-The first group --- pCMC ($\Delta = -0.00$) and $D_{\mathrm{MOL}}$ ($\Delta = -0.00$) --- shows near-perfect calibration, with the curve lying essentially on the diagonal throughout.
-For these targets, the calibration residuals from validation folds are representative of test-set errors despite the cluster-based splitting strategy, indicating that the distributional shift introduced by structural dissimilarity between train/validation and test clusters is minimal for these properties.
+The three properties with the fewest training examples --- $\Gamma_{\max}$, $A_{\min}$, and pC$_{20}$, each available for fewer than 600 molecules --- are uniformly over-covered throughout the calibration range, with empirical coverage exceeding nominal by up to 14 percentage points at intermediate levels.
+For these targets, the model's in-distribution difficulty already approximates its out-of-distribution difficulty, so calibration residuals from the validation folds are representative of test errors on novel clusters, yielding conservative intervals.
 
-The second group --- $\gamma_{\mathrm{CMC}}$ ($\Delta = -0.02$), $D_{\mathrm{SOL}}$ ($\Delta = -0.04$), $\gamma$ ($\Delta = -0.03$), and $\eta$ ($\Delta = -0.05$) --- shows systematic under-coverage: empirical coverage falls below nominal throughout the range, most prominently at intermediate coverage levels (60--80\%).
-For these targets, the model has learned strong in-distribution patterns (particularly true for the MD-derived targets, which achieve high $R^2$ and Spearman $\rho$), so calibration residuals are small and the resulting intervals are tight.
-When applied to test clusters that are structurally dissimilar from the training data, these intervals are insufficiently wide to capture the inflated errors, causing coverage to fall below the nominal guarantee.
+At the opposite extreme, the MD-derived targets $D_{\mathrm{SOL}}$ ($\Delta = -0.04$), $\eta$ ($\Delta = -0.05$), and $\gamma$ ($\Delta = -0.03$) are systematically under-covered, with the largest deviations again at intermediate nominal levels, where empirical coverage falls up to 13 percentage points below nominal.
+For these high-accuracy targets, the model achieves tight in-distribution predictions, resulting in small calibration residuals;
+when the resulting intervals are applied to test compounds from structurally dissimilar clusters, they are insufficiently wide to accommodate the inflated errors, and the nominal coverage guarantee is not met.
 
-The third group --- $\Gamma_{\max}$ ($\Delta = +0.03$), $A_{\min}$ ($\Delta = +0.06$), and pC$_{20}$ ($\Delta = +0.01$) --- shows over-coverage: empirical coverage consistently exceeds nominal.
-These are among the most difficult targets in the dataset (lowest $R^2$).
-Critically, their difficulty is not concentrated in specific structural clusters but distributed uniformly across chemical space: both the validation folds and the test clusters are similarly challenging for the model.
-The calibration residuals therefore already incorporate the characteristic error magnitude for this property, causing the resulting intervals to be wide enough --- or even conservative --- relative to the actual test errors.
+pCMC ($\Delta = -0.00$) and $D_{\mathrm{MOL}}$ ($\Delta = -0.00$) show near-perfect calibration throughout, and $\gamma_{\mathrm{CMC}}$ ($\Delta = -0.02$) shows mild under-coverage, despite an intermediate number of training examples (836).
 
 \begin{table}[ht]
 \centering
@@ -595,11 +592,11 @@ For the two uncertainty heuristics --- NN distance and ensemble disagreement ---
 This is not a coincidence: it reflects a well-known characteristic of gradient-boosted ensembles, which tend to agree confidently on interpolated predictions and disagree near the boundaries of the training distribution.
 Properties with modest Spearman correlations ($\rho_{\mathrm{NN}}$ or $\rho_{\mathrm{std}} < 0.1$) --- most notably $\gamma$ and $\gamma_{\mathrm{CMC}}$ --- are targets where the model is wrong in ways that are not captured by either structural proximity or ensemble disagreement, indicating a more fundamental limitation of the feature representation or the model's inductive bias for these properties.
 
-The conformal calibration curves (Figure~\ref{fig:unc_conformal}) reveal three distinct regimes across the nine targets.
-Near-perfect calibration is observed for pCMC and $D_{\mathrm{MOL}}$.
-The high-accuracy MD targets ($D_{\mathrm{SOL}}$, $\eta$) and $\gamma_{\mathrm{CMC}}$ show mild under-coverage: tight in-distribution residuals yield narrow conformal intervals that are insufficient to cover the inflated errors on structurally novel test clusters.
-Conversely, the low-$R^2$ experimental targets ($\Gamma_{\max}$, $A_{\min}$, pC$_{20}$) are consistently over-covered, because their difficulty is uniformly distributed across chemical space rather than concentrated at cluster boundaries.
-A detailed analysis of these calibration regimes and their practical implications for users is provided in the Supporting Information.
+The conformal calibration curves (Figure~\ref{fig:unc_conformal}) show a pattern tied to training-set size and model accuracy.
+Low-data experimental targets ($\Gamma_{\max}$, $A_{\min}$, pC$_{20}$) are consistently over-covered: because the model is similarly uncertain inside and outside the training distribution, calibration residuals are conservative for novel compounds.
+High-accuracy MD targets ($D_{\mathrm{SOL}}$, $\eta$, $\gamma$) show the opposite tendency: under-coverage that is most pronounced at intermediate nominal levels, where tight in-distribution residuals underestimate the errors encountered on held-out structural clusters.
+The practical implication is that conformal intervals for the data-poor experimental targets can be used at face value or treated as conservative, while users of the best-predicted MD targets requesting, for example, 90\% coverage should anticipate approximately 85\% actual coverage on structurally novel compounds.
+A detailed per-target analysis is provided in the Supporting Information.
 
 Both of these components are already included in SurfPro-MD.
 Applicability domain estimation is provided through the nearest-neighbour distance analysis described above, flagging predictions that require extrapolation beyond the training distribution.
