@@ -574,13 +574,11 @@ Gap @ 0.90 is the signed difference between empirical and nominal coverage at th
 \section{Discussion}
 \label{sec:discussion}
 
-SurfPro-MD is designed to function as a practical screening tool.
-The central question when evaluating such a tool is not whether it captures the full underlying physics, but whether its predictions are reliable enough to support useful decisions: ranking candidate molecules, filtering screening libraries, and guiding generative design.
+The results presented above span three distinct levels of evaluation: the quality and coverage of the underlying dataset, the predictive accuracy of the surrogate models across nine physicochemical properties, and the reliability of the associated uncertainty estimates.
+Taken together, they provide a coherent picture of what SurfPro-MD can and cannot be expected to deliver in practice.
 
-For these purposes, the tool performs well across most targets.
-Transport properties --- diffusion coefficients and viscosity --- are predicted with high accuracy ($R^2 > 0.75$, Spearman $\rho > 0.86$), making them immediately suitable as quantitative screening criteria or scoring functions.
-For interfacial and adsorption properties, absolute regression accuracy is lower, but meaningful rank ordering is preserved in most cases, as reflected by Spearman correlations of 0.5--0.7 for targets such as $\gamma_{\mathrm{CMC}}$ and pCMC.
-Rank preservation is the more relevant metric for the screening use case: a scoring function that correctly orders candidates will guide a generative model toward better molecules even when absolute predicted values deviate from experiment.
+Transport properties --- diffusion coefficients and viscosity --- are predicted with high accuracy ($R^2 > 0.75$, Spearman $\rho > 0.86$), and meaningful rank ordering is preserved across most remaining targets, with Spearman correlations of 0.5--0.7 for properties such as $\gamma_{\mathrm{CMC}}$ and pCMC.
+Rank preservation matters as much as absolute accuracy here: a scoring function that correctly orders candidates will guide a generative model toward better molecules even when predicted values deviate from their experimental counterparts.
 
 Like any surrogate model, SurfPro-MD operates within an applicability domain determined by the chemical diversity of its training set.
 What distinguishes this tool is that this domain is made explicit rather than left to the user to infer.
